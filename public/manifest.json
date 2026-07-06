@@ -1,0 +1,35 @@
+{
+  "short_name": "Kone AI",
+  "name": "Kone AI | Machine Learning & Automation",
+  "description": "Professional Machine Learning and Intelligent Automation hub.",
+  "icons": [
+    {
+      "src": "app-ai.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1e1e1e",
+  "background_color": "#090d16"
+}

@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-kone-main: #0a0a0c;
+  --bg-kone-sidebar: #121316;
+  --bg-kone-input: rgba(18, 19, 22, 0.7);
+  --text-kone-primary: #e3e3e3;
+  --text-kone-secondary: #9ca3af;
+  --kone-accent-1: #BC00FF;
+  --kone-accent-2: #00D1FF;
+}
+
+.kone-glass {
+  background: var(--bg-kone-input);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-kone-main);
+  color: var(--text-kone-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scrollbar Styling matching Gemini */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Utilities for the input box */
+.gemini-input-shadow {
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
