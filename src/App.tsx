@@ -4,7 +4,13 @@ import MissionSimulator from './components/MissionSimulator';
 import { MoreVertical, Database, Settings, ShieldCheck, Zap } from 'lucide-react';
 import './index.css';
 
-const PlaceholderView = ({ title, icon: Icon, description }) => (
+interface PlaceholderViewProps {
+  title: string;
+  icon: React.ComponentType<any>;
+  description: string;
+}
+
+const PlaceholderView: React.FC<PlaceholderViewProps> = ({ title, icon: Icon, description }) => (
     <div className="flex flex-col items-center justify-center h-[70vh] text-center px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-tr from-[#BC00FF]/20 to-[#00D1FF]/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -20,7 +26,7 @@ const PlaceholderView = ({ title, icon: Icon, description }) => (
 );
 
 function App() {
-  const [activeView, setActiveView] = useState('synthesis');
+  const [activeView, setActiveView] = useState<string>('synthesis');
 
   const renderContent = () => {
     switch (activeView) {

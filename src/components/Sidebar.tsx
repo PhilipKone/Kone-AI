@@ -1,8 +1,20 @@
 import React from 'react';
 import { Menu, Search, Database, ChevronRight, Plus, Settings, TerminalSquare, History } from 'lucide-react';
 
-const Sidebar = ({ activeView, onViewChange }) => {
-  const menuItems = [
+interface SidebarProps {
+  activeView: string;
+  onViewChange: (view: string) => void;
+}
+
+interface MenuItem {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
+  const menuItems: MenuItem[] = [
     { id: 'synthesis', name: 'New Synthesis', icon: <TerminalSquare size={18} />, color: '#00D1FF' },
     { id: 'knowledge', name: 'Knowledge Base', icon: <Database size={18} />, color: '#9ca3af' },
   ];

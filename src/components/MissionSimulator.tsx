@@ -3,15 +3,37 @@ import { ChevronDown, ChevronUp, Terminal, Settings2, ShieldAlert, Zap, Send, Sp
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
-const MissionSimulator = () => {
-  const [input, setInput] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showThinking, setShowThinking] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [provider, setProvider] = useState('gemini-flash'); 
-  const [showProviderMenu, setShowProviderMenu] = useState(false);
+interface ProviderItem {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  desc: string;
+  badge?: string;
+}
 
-  const providers = [
+interface RoadmapItem {
+  tag: string;
+  name: string;
+  reason: string;
+}
+
+interface MessageItem {
+  role: 'user' | 'ai';
+  content: string;
+  logicTrace?: string[];
+  roadmap?: RoadmapItem[] | null;
+  activeProvider?: string;
+}
+
+const MissionSimulator: React.FC = () => {
+  const [input, setInput] = useState<string>('');
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [showThinking, setShowThinking] = useState<boolean>(false);
+  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [provider, setProvider] = useState<string>('gemini-flash'); 
+  const [showProviderMenu, setShowProviderMenu] = useState<boolean>(false);
+
+  const providers: ProviderItem[] = [
     { id: 'gemini-flash', name: 'Gemini Flash', icon: <Sparkles size={14} className="text-[#00D1FF]" />, desc: 'Fast & Lightweight' },
     { id: 'gemini-pro', name: 'Gemini 2.5 Pro', icon: <Crown size={14} className="text-[#BC00FF]" />, desc: 'Complex Reasoning' },
     { id: 'gemini-next', name: 'Gemini 3.1 Pro', icon: <Atom size={14} className="text-[#00FFD1]" />, desc: 'Next-Gen flagship', badge: 'NEW' },
@@ -48,7 +70,7 @@ const MissionSimulator = () => {
                 activeProvider: currentProvider
             }
         ]);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Synthesis failed:", error);
         const errorMsg = error.response?.data?.error || "Connection to AI Core failed. Please verify API keys in server/.env.";
         setMessages(prev => [
@@ -66,7 +88,7 @@ const MissionSimulator = () => {
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter' && !isAnalyzing) {
           handleGenerate();
       }
