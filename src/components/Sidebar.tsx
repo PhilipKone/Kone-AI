@@ -1,9 +1,14 @@
 import React from 'react';
 import { Menu, Search, Database, ChevronRight, Plus, Settings, TerminalSquare, History } from 'lucide-react';
+import { Session } from '../App';
 
 interface SidebarProps {
   activeView: string;
   onViewChange: (view: string) => void;
+  sessions: Session[];
+  activeSessionId: string;
+  onSessionSelect: (id: string) => void;
+  onNewSession: () => void;
 }
 
 interface MenuItem {
@@ -13,7 +18,14 @@ interface MenuItem {
   color: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  activeView, 
+  onViewChange, 
+  sessions, 
+  activeSessionId, 
+  onSessionSelect, 
+  onNewSession 
+}) => {
   const menuItems: MenuItem[] = [
     { id: 'synthesis', name: 'New Synthesis', icon: <TerminalSquare size={18} />, color: '#00D1FF' },
     { id: 'knowledge', name: 'Knowledge Base', icon: <Database size={18} />, color: '#9ca3af' },
@@ -31,7 +43,12 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
         {menuItems.map((item) => (
           <div 
             key={item.id}
-            onClick={() => onViewChange(item.id)}
+            onClick={() => {
+              onViewChange(item.id);
+              if (item.id === 'synthesis') {
+                // Keep active session or let it stand
+              }
+            }}
             className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${
                 activeView === item.id 
                 ? 'bg-white/5 border-white/10 text-white' 
@@ -51,7 +68,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
           <span className="font-mono text-[11px] uppercase tracking-wider text-[#9ca3af] group-hover:text-white">Missions</span>
           <ChevronRight size={16} className="text-[#9ca3af]" />
         </div>
-        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer mt-1 transition-colors text-[#9ca3af] hover:text-white">
+        <div 
+          onClick={onNewSession}
+          className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer mt-1 transition-colors text-[#9ca3af] hover:text-white border border-transparent hover:border-white/5"
+        >
           <Plus size={18} />
           <span>New Mission Node</span>
         </div>
@@ -74,15 +94,22 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) => {
             <span className="font-mono text-[11px] uppercase tracking-wider text-[#9ca3af]">Session Logs</span>
         </div>
         <div className="space-y-1">
-          <div className="truncate px-3 py-2 hover:bg-white/5 rounded-xl cursor-pointer transition-colors text-sm text-[#9ca3af] hover:text-white">
-            Alex - Level 2 Trajectory
-          </div>
-          <div className="truncate px-3 py-2 hover:bg-white/5 rounded-xl cursor-pointer transition-colors text-sm text-[#9ca3af] hover:text-white">
-            Optimizing 'Motor Master' Loop
-          </div>
-          <div className="truncate px-3 py-2 hover:bg-white/5 rounded-xl cursor-pointer transition-colors text-sm text-[#9ca3af] hover:text-white">
-            Neural Gap Detection - Sensors
-          </div>
+          {sessions.map((session) => (
+            <div 
+              key={session.id}
+              onClick={() => {
+                onSessionSelect(session.id);
+                onViewChange('synthesis');
+              }}
+              className={`truncate px-3 py-2 rounded-xl cursor-pointer transition-colors text-sm ${
+                activeSessionId === session.id && activeView === 'synthesis'
+                ? 'bg-white/5 text-[#00D1FF] border border-white/5'
+                : 'text-[#9ca3af] hover:text-white hover:bg-white/5 border border-transparent'
+              }`}
+            >
+              {session.name}
+            </div>
+          ))}
         </div>
       </div>
 

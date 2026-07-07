@@ -1,7 +1,32 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Terminal, Settings2, ShieldAlert, Zap, Send, Sparkles, Cpu, Crown, Atom } from 'lucide-react';
+import { 
+  ChevronDown, 
+  ChevronUp, 
+  Terminal, 
+  Settings2, 
+  ShieldAlert, 
+  Zap, 
+  Send, 
+  Sparkles, 
+  Cpu, 
+  Crown, 
+  Atom, 
+  RefreshCw, 
+  Trash2, 
+  Check, 
+  Copy 
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
+import { Session, AIParameters } from '../App';
+
+interface MissionSimulatorProps {
+  session: Session;
+  onSendMessage: (text: string, provider: string) => void;
+  isAnalyzing: boolean;
+  parameters: AIParameters;
+  onUpdateParameters: React.Dispatch<React.SetStateAction<AIParameters>>;
+  onClearSession: () => void;
+}
 
 interface ProviderItem {
   id: string;
@@ -11,27 +36,23 @@ interface ProviderItem {
   badge?: string;
 }
 
-interface RoadmapItem {
-  tag: string;
-  name: string;
-  reason: string;
-}
+type DBStatus = 'offline' | 'connecting' | 'online';
 
-interface MessageItem {
-  role: 'user' | 'ai';
-  content: string;
-  logicTrace?: string[];
-  roadmap?: RoadmapItem[] | null;
-  activeProvider?: string;
-}
-
-const MissionSimulator: React.FC = () => {
+const MissionSimulator: React.FC<MissionSimulatorProps> = ({
+  session,
+  onSendMessage,
+  isAnalyzing,
+  parameters,
+  onUpdateParameters,
+  onClearSession
+}) => {
   const [input, setInput] = useState<string>('');
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
-  const [showThinking, setShowThinking] = useState<boolean>(false);
-  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [showThinking, setShowThinking] = useState<boolean>(true);
   const [provider, setProvider] = useState<string>('gemini-flash'); 
   const [showProviderMenu, setShowProviderMenu] = useState<boolean>(false);
+  const [showParameters, setShowParameters] = useState<boolean>(false);
+  const [dbStatus, setDbStatus] = useState<DBStatus>('offline');
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const providers: ProviderItem[] = [
     { id: 'gemini-flash', name: 'Gemini Flash', icon: <Sparkles size={14} className="text-[#00D1FF]" />, desc: 'Fast & Lightweight' },
@@ -42,76 +63,54 @@ const MissionSimulator: React.FC = () => {
     { id: 'openai-next', name: 'GPT 5.5', icon: <Atom size={14} className="text-[#FF00D1]" />, desc: 'Autonomous AGI-Lite', badge: 'LATEST' }
   ];
 
-  const handleGenerate = async () => {
-    if (!input.trim()) return;
-
-    const userQuery = input;
-    const currentProvider = provider;
+  const handleGenerate = () => {
+    if (!input.trim() || isAnalyzing) return;
+    onSendMessage(input, provider);
     setInput('');
-    setIsAnalyzing(true);
-    setMessages(prev => [...prev, { role: 'user', content: userQuery }]);
-    setShowThinking(true);
-    
-    try {
-        const response = await axios.post('http://localhost:5000/api/synthesize', {
-            query: userQuery,
-            provider: currentProvider
-        });
-
-        const data = response.data;
-
-        setMessages(prev => [
-            ...prev,
-            {
-                role: 'ai',
-                logicTrace: data.logicTrace,
-                content: data.message,
-                roadmap: data.roadmap,
-                activeProvider: currentProvider
-            }
-        ]);
-    } catch (error: any) {
-        console.error("Synthesis failed:", error);
-        const errorMsg = error.response?.data?.error || "Connection to AI Core failed. Please verify API keys in server/.env.";
-        setMessages(prev => [
-            ...prev,
-            {
-                role: 'ai',
-                logicTrace: ["Connection to AI Core failed.", "Verifying configuration..."],
-                content: `Error: ${errorMsg}`,
-                roadmap: null,
-                activeProvider: currentProvider
-            }
-        ]);
-    } finally {
-        setIsAnalyzing(false);
-    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter' && !isAnalyzing) {
-          handleGenerate();
-      }
+    if (e.key === 'Enter' && !isAnalyzing) {
+      handleGenerate();
+    }
+  };
+
+  const handleToggleDB = () => {
+    if (dbStatus === 'offline') {
+      setDbStatus('connecting');
+      setTimeout(() => {
+        setDbStatus('online');
+      }, 1200);
+    } else if (dbStatus === 'online') {
+      setDbStatus('offline');
+    }
+  };
+
+  const handleCopyEndpoint = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
   };
 
   return (
     <div className="w-full flex flex-col h-full relative">
         <div className="flex-1 space-y-8 pb-32 overflow-y-auto custom-scrollbar pr-2">
-            {messages.length === 0 && (
+            {session.messages.length === 0 && (
                 <div className="h-[40vh] flex flex-col items-center justify-center opacity-70">
                     <img src="/app-ai.svg" alt="Kone AI" className="w-20 h-20 mb-6 drop-shadow-[0_0_15px_rgba(0,209,255,0.3)]" />
                     <p className="text-xl font-light tracking-wide text-[#9ca3af] font-mono uppercase text-xs">Awaiting Synthesis Query</p>
+                    <p className="text-[11px] text-[#9ca3af]/40 font-mono mt-2 uppercase tracking-widest">Selected Engine: {providers.find(p => p.id === provider)?.name}</p>
                 </div>
             )}
             
-            {messages.map((msg, idx) => (
+            {session.messages.map((msg, idx) => (
                 <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     {msg.role === 'user' ? (
                         <div className="bg-[#1e1f24] text-[#e3e3e3] px-6 py-4 rounded-xl border border-white/5 max-w-[80%] text-[15px] leading-relaxed font-mono shadow-md">
                             <span className="text-[#00D1FF] mr-2">❯</span>{msg.content}
                         </div>
                     ) : (
-                        <div className="w-full max-w-3xl space-y-4">
+                        <div className="w-full max-w-3xl space-y-4 animate-in fade-in duration-300">
                             {/* Thinking Block */}
                             <div className="mb-6">
                                 <div className="flex items-center gap-4">
@@ -152,7 +151,7 @@ const MissionSimulator: React.FC = () => {
                             <div className="text-[#e3e3e3] text-[16px] leading-relaxed pl-1">
                                 <p className="mb-6">{msg.content}</p>
                                 
-                                {msg.roadmap && (
+                                {msg.roadmap && msg.roadmap.length > 0 && (
                                     <div className="space-y-4 mt-8">
                                         <h4 className="font-mono text-sm uppercase tracking-widest text-[#00D1FF] mb-4 flex items-center gap-2">
                                             <Zap size={16} /> Projected Pathway
@@ -178,7 +177,7 @@ const MissionSimulator: React.FC = () => {
                  <div className="flex justify-start">
                     <div className="w-full max-w-3xl space-y-4">
                         <div className="flex items-center gap-3 px-3 py-1.5 w-fit bg-[#BC00FF]/10 rounded-full border border-[#BC00FF]/30">
-                            <img src="/app-ai.svg" alt="Processing" className="w-4 h-4 animate-spin-slow" />
+                            <RefreshCw size={14} className="animate-spin text-[#BC00FF]" />
                             <span className="font-mono text-[12px] uppercase tracking-wider text-[#BC00FF] animate-pulse">Synthesizing Trajectory...</span>
                         </div>
                     </div>
@@ -187,16 +186,81 @@ const MissionSimulator: React.FC = () => {
         </div>
 
         {/* Floating Input Box (Terminal Style) */}
-        <div className="fixed bottom-0 md:right-[280px] left-0 right-0 p-0 md:p-6 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c] to-transparent pointer-events-none z-50">
-            <div className="max-w-4xl mx-auto w-full pointer-events-auto">
-                <div className="kone-glass md:rounded-xl p-2 flex flex-col shadow-2xl border border-white/10 md:mb-4">
-                    <div className="flex items-center px-4 pt-2 pb-1 border-b border-white/5 mb-2">
-                        <div className="flex gap-1.5">
-                            <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                            <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+        <div className="fixed bottom-0 md:right-[280px] left-0 right-0 p-0 md:p-6 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c] to-transparent pointer-events-none z-50 animate-in fade-in duration-500">
+            <div className="max-w-4xl mx-auto w-full pointer-events-auto relative">
+                
+                {/* Parameters Overlay Panel */}
+                <AnimatePresence>
+                  {showParameters && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 15 }}
+                      className="absolute bottom-full left-4 md:left-0 mb-4 w-80 bg-[#121316]/95 border border-white/10 rounded-xl shadow-2xl p-4 z-50 text-left font-mono text-xs space-y-4 backdrop-blur-md"
+                    >
+                      <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <span className="font-bold text-[#BC00FF] uppercase tracking-wider flex items-center gap-1.5">
+                          <Settings2 size={14} /> Engine Parameters
+                        </span>
+                        <button onClick={() => setShowParameters(false)} className="text-[#9ca3af] hover:text-white font-sans text-sm">×</button>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[#9ca3af]">
+                            <span>Temperature</span>
+                            <span className="text-[#00D1FF]">{parameters.temperature}</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="1" 
+                            step="0.05"
+                            value={parameters.temperature}
+                            onChange={(e) => onUpdateParameters(prev => ({ ...prev, temperature: parseFloat(e.target.value) }))}
+                            className="w-full accent-[#BC00FF] bg-white/10 h-1 rounded-lg appearance-none cursor-pointer"
+                          />
                         </div>
-                        <span className="ml-4 font-mono text-[10px] uppercase tracking-widest text-[#9ca3af]">Kone Console v1.0</span>
+
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[#9ca3af]">
+                            <span>Max Tokens</span>
+                            <span className="text-[#00D1FF]">{parameters.maxTokens}</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="256" 
+                            max="4096" 
+                            step="128"
+                            value={parameters.maxTokens}
+                            onChange={(e) => onUpdateParameters(prev => ({ ...prev, maxTokens: parseInt(e.target.value) }))}
+                            className="w-full accent-[#BC00FF] bg-white/10 h-1 rounded-lg appearance-none cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="kone-glass md:rounded-xl p-2 flex flex-col shadow-2xl border border-white/10 md:mb-4">
+                    <div className="flex items-center justify-between px-4 pt-2 pb-1 border-b border-white/5 mb-2">
+                        <div className="flex items-center">
+                            <div className="flex gap-1.5 mr-4">
+                                <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+                                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
+                                <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+                            </div>
+                            <span className="font-mono text-[10px] uppercase tracking-widest text-[#9ca3af]">Kone Console v1.0</span>
+                        </div>
+                        {session.messages.length > 0 && (
+                          <button 
+                            onClick={onClearSession}
+                            className="text-[#9ca3af] hover:text-red-400 p-1 rounded hover:bg-white/5 transition-colors flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest"
+                          >
+                            <Trash2 size={12} />
+                            <span>Clear console</span>
+                          </button>
+                        )}
                     </div>
                     <div className="flex items-start px-4 py-2">
                         <span className="text-[#00D1FF] font-mono mt-3 mr-3 text-lg">❯</span>
@@ -263,15 +327,40 @@ const MissionSimulator: React.FC = () => {
                                 )}
                             </AnimatePresence>
 
-                            <button className="flex items-center gap-2 px-3 py-1 hover:bg-white/5 rounded-md text-[#9ca3af] transition-colors text-xs font-mono">
+                            <button 
+                                onClick={() => setShowParameters(!showParameters)}
+                                className={`flex items-center gap-2 px-3 py-1 rounded-md transition-colors text-xs font-mono border ${
+                                    showParameters 
+                                    ? 'bg-[#BC00FF]/10 border-[#BC00FF]/30 text-white' 
+                                    : 'hover:bg-white/5 border-transparent text-[#9ca3af]'
+                                }`}
+                            >
                                 <Settings2 size={14} />
                                 <span>Parameters</span>
                             </button>
                         </div>
+                        
                         <div className="flex items-center gap-1 md:gap-2">
-                             <button className="flex items-center gap-1 px-3 py-1 hover:bg-white/5 rounded-md text-[#9ca3af] transition-colors text-xs font-mono">
-                                <ShieldAlert size={14} className="text-yellow-500" />
-                                <span>Live DB Connect</span>
+                             <button 
+                                onClick={handleToggleDB}
+                                className={`flex items-center gap-2 px-3 py-1 rounded-md transition-all text-xs font-mono border ${
+                                    dbStatus === 'online'
+                                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                                    : dbStatus === 'connecting'
+                                    ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400 animate-pulse'
+                                    : 'bg-white/5 border-white/5 text-[#9ca3af] hover:text-white'
+                                }`}
+                             >
+                                <ShieldAlert size={14} className={
+                                    dbStatus === 'online' ? 'text-green-400' :
+                                    dbStatus === 'connecting' ? 'text-yellow-400' :
+                                    'text-[#9ca3af]'
+                                } />
+                                <span>
+                                    {dbStatus === 'online' ? 'Live DB Connected' :
+                                     dbStatus === 'connecting' ? 'Handshaking...' :
+                                     'Connect Live DB'}
+                                </span>
                             </button>
                         </div>
                     </div>
