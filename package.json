@@ -6,7 +6,7 @@
     "scripts":  {
                     "dev":  "vite",
                     "build":  "tsc && vite build",
-                    "postbuild":  "react-snap",
+                    "postbuild":  "react-snap || echo 'Pre-rendering timed out, deploying SPA...'",
                     "lint":  "eslint .",
                     "preview":  "vite preview",
                     "predeploy":  "npm run build",
