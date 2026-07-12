@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import MissionSimulator from './components/MissionSimulator';
+import Sitemap from './components/Sitemap';
 import { 
   MoreVertical, 
   Database, 
@@ -10,13 +11,13 @@ import {
   RefreshCw, 
   Sliders, 
   FileCode, 
-  Play, 
   Check, 
   ShieldAlert, 
   Cpu, 
   Globe 
 } from 'lucide-react';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import './index.css';
 
 /* ── Type Declarations ────────────────────────────────── */
@@ -97,6 +98,22 @@ function App() {
   const [activeView, setActiveView] = useState<string>('synthesis');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   
+  // Toast State
+  const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'warning' } | null>(null);
+
+  // Sidebar Collapse State
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+
+  // Header Dialogs/Modals State
+  const [showSecurityModal, setShowSecurityModal] = useState<boolean>(false);
+  const [showReleaseModal, setShowReleaseModal] = useState<boolean>(false);
+  const [showAgentSpecsModal, setShowAgentSpecsModal] = useState<boolean>(false);
+  const [showHeaderDropdown, setShowHeaderDropdown] = useState<boolean>(false);
+
+  // Latency State
+  const [latency, setLatency] = useState<number>(98);
+  const [latencyTesting, setLatencyTesting] = useState<boolean>(false);
+
   // AI Parameters State
   const [parameters, setParameters] = useState<AIParameters>({
     temperature: 0.7,
@@ -176,6 +193,47 @@ function App() {
   const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
 
   /* ── Handler Actions ──────────────────────────────────── */
+
+  const showToast = (message: string, type: 'info' | 'success' | 'warning' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleCheckLatency = () => {
+    if (latencyTesting) return;
+    setLatencyTesting(true);
+    showToast("Pinging local orchestrator...", "info");
+    
+    setTimeout(() => {
+      const newLatency = Math.floor(Math.random() * 80) + 30; // 30ms - 110ms
+      setLatency(newLatency);
+      setLatencyTesting(false);
+      showToast(`Ping completed: ${newLatency}ms latency`, "success");
+    }, 1200);
+  };
+
+  const handleRunDiagnostics = () => {
+    setShowHeaderDropdown(false);
+    showToast("Running system diagnostics...", "info");
+    setTimeout(() => {
+      showToast("All cores operational. Memory load 18%. API connection OK.", "success");
+    }, 1500);
+  };
+
+  const handleCopyEndpointAddress = () => {
+    setShowHeaderDropdown(false);
+    navigator.clipboard.writeText("http://localhost:5000/api/synthesize");
+    showToast("API Endpoint copied to clipboard!", "success");
+  };
+
+  const handleClearAllSessions = () => {
+    setShowHeaderDropdown(false);
+    setSessions([
+      { id: 'session-new', name: 'New Session 1', messages: [] }
+    ]);
+    setActiveSessionId('session-new');
+    showToast("All session logs cleared.", "warning");
+  };
 
   const handleSendMessage = async (text: string, provider: string) => {
     if (!text.trim()) return;
@@ -259,6 +317,7 @@ function App() {
     setSessions(prev => [newSession, ...prev]);
     setActiveSessionId(newId);
     setActiveView('synthesis');
+    showToast("Created a new synthesis console", "info");
   };
 
   const handleClearSession = () => {
@@ -268,6 +327,7 @@ function App() {
       }
       return s;
     }));
+    showToast("Active session console cleared", "info");
   };
 
   const handleInitializeKB = () => {
@@ -275,6 +335,7 @@ function App() {
     setTimeout(() => {
       setKbLoading(false);
       setKbInitialized(true);
+      showToast("Knowledge Base mounted successfully", "success");
     }, 1500);
   };
 
@@ -283,6 +344,7 @@ function App() {
     setTimeout(() => {
       setSettingsSyncing(false);
       setSettingsSynced(true);
+      showToast("Lab settings synced with active hardware nodes", "success");
     }, 1500);
   };
 
@@ -319,7 +381,10 @@ function App() {
             <p className="text-xs font-mono text-[#9ca3af] uppercase tracking-wider mt-1">Mounted: /dev/sda1 → /mnt/knowledge</p>
           </div>
           <button 
-            onClick={() => setKbInitialized(false)}
+            onClick={() => {
+              setKbInitialized(false);
+              showToast("Knowledge Base unmounted", "warning");
+            }}
             className="text-xs font-mono text-[#BC00FF] hover:underline"
           >
             [Unmount]
@@ -383,7 +448,10 @@ function App() {
             <p className="text-xs font-mono text-[#9ca3af] uppercase tracking-wider mt-1">Core Hardware Handshake: ONLINE</p>
           </div>
           <button 
-            onClick={() => setSettingsSynced(false)}
+            onClick={() => {
+              setSettingsSynced(false);
+              showToast("Lab settings disconnected from hardware", "warning");
+            }}
             className="text-xs font-mono text-[#BC00FF] hover:underline"
           >
             [Disconnect]
@@ -405,7 +473,10 @@ function App() {
                 <input 
                   type="checkbox" 
                   checked={safetyToggles.speedLimiter} 
-                  onChange={(e) => setSafetyToggles(prev => ({ ...prev, speedLimiter: e.target.checked }))}
+                  onChange={(e) => {
+                    setSafetyToggles(prev => ({ ...prev, speedLimiter: e.target.checked }));
+                    showToast(e.target.checked ? "Hardware Speed Limiter active" : "Speed Limiter deactivated", "info");
+                  }}
                   className="w-4 h-4 accent-[#BC00FF]"
                 />
               </div>
@@ -418,7 +489,10 @@ function App() {
                 <input 
                   type="checkbox" 
                   checked={safetyToggles.telemetryStream} 
-                  onChange={(e) => setSafetyToggles(prev => ({ ...prev, telemetryStream: e.target.checked }))}
+                  onChange={(e) => {
+                    setSafetyToggles(prev => ({ ...prev, telemetryStream: e.target.checked }));
+                    showToast(e.target.checked ? "Telemetry Stream active" : "Telemetry Stream disabled", "info");
+                  }}
                   className="w-4 h-4 accent-[#BC00FF]"
                 />
               </div>
@@ -437,7 +511,10 @@ function App() {
                 <input 
                   type="checkbox" 
                   checked={safetyToggles.groundedSearch} 
-                  onChange={(e) => setSafetyToggles(prev => ({ ...prev, groundedSearch: e.target.checked }))}
+                  onChange={(e) => {
+                    setSafetyToggles(prev => ({ ...prev, groundedSearch: e.target.checked }));
+                    showToast(e.target.checked ? "Grounded Knowledge search forced" : "Open intelligence search active", "info");
+                  }}
                   className="w-4 h-4 accent-[#BC00FF]"
                 />
               </div>
@@ -450,7 +527,10 @@ function App() {
                 <input 
                   type="checkbox" 
                   checked={safetyToggles.verboseLogs} 
-                  onChange={(e) => setSafetyToggles(prev => ({ ...prev, verboseLogs: e.target.checked }))}
+                  onChange={(e) => {
+                    setSafetyToggles(prev => ({ ...prev, verboseLogs: e.target.checked }));
+                    showToast(e.target.checked ? "Verbose raw engine logs active" : "Verbose logs deactivated", "info");
+                  }}
                   className="w-4 h-4 accent-[#BC00FF]"
                 />
               </div>
@@ -484,13 +564,91 @@ function App() {
             parameters={parameters}
             onUpdateParameters={setParameters}
             onClearSession={handleClearSession}
+            onShowToast={showToast}
           />
         );
     }
   };
 
+  if (activeView === 'sitemap') {
+    return <Sitemap onBack={() => setActiveView('synthesis')} onNavigate={setActiveView} />;
+  }
+
   return (
     <div className="flex h-screen w-full bg-[#0a0a0c] overflow-hidden text-[#e3e3e3] font-sans selection:bg-purple-500/30 flex-row-reverse">
+      
+      {/* Dynamic Toast Alert */}
+      {toast && (
+        <div className="fixed top-24 left-6 z-50 bg-[#121316]/95 border border-white/10 rounded-xl p-4 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300 flex items-center gap-3 backdrop-blur-md">
+          <div className={`w-2 h-2 rounded-full ${
+            toast.type === 'success' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 
+            toast.type === 'warning' ? 'bg-red-500 shadow-[0_0_8px_#ef4444]' : 
+            'bg-blue-500 shadow-[0_0_8px_#3b82f6]'
+          }`}></div>
+          <span className="font-mono text-xs text-[#e3e3e3]">{toast.message}</span>
+        </div>
+      )}
+
+      {/* Security Specs Modal */}
+      {showSecurityModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#121316] border border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl font-sans relative animate-in zoom-in duration-200">
+            <button onClick={() => setShowSecurityModal(false)} className="absolute top-4 right-4 text-[#9ca3af] hover:text-white font-mono text-lg">×</button>
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <ShieldCheck size={20} className="text-green-500" /> Secure Core Diagnostics
+            </h3>
+            <div className="font-mono text-[11px] text-[#9ca3af] space-y-2 bg-black/30 p-4 rounded-xl leading-relaxed">
+              <p>🟢 SSL/TLS Connection: ENCRYPTED</p>
+              <p>🟢 Local API Handshake: SIGNED (Port 5000)</p>
+              <p>🟢 Origin verification: VERIFIED (PhilipKone)</p>
+              <p>🟢 Input sanitation: ACTIVE</p>
+            </div>
+            <button onClick={() => setShowSecurityModal(false)} className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono transition-all text-[#e3e3e3] hover:text-white">Acknowledge</button>
+          </div>
+        </div>
+      )}
+
+      {/* Release Notes Modal */}
+      {showReleaseModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#121316] border border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl font-sans relative animate-in zoom-in duration-200">
+            <button onClick={() => setShowReleaseModal(false)} className="absolute top-4 right-4 text-[#9ca3af] hover:text-white font-mono text-lg">×</button>
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <Zap size={20} className="text-[#00D1FF]" /> Kone AI Release Notes
+            </h3>
+            <div className="font-mono text-[11px] text-[#9ca3af] space-y-3 bg-black/30 p-4 rounded-xl max-h-60 overflow-y-auto custom-scrollbar leading-relaxed">
+              <p className="text-[#00D1FF] font-bold">v1.0.beta (Latest)</p>
+              <ul className="list-disc pl-4 space-y-2">
+                <li>TypeScript migration completed. Added tsconfig compiler constraints.</li>
+                <li>Fully interactive session switching & log indexing in sidebar.</li>
+                <li>Custom model temperature & token limits panel configuration.</li>
+                <li>Mock telemetry connection triggers and live log debugging console.</li>
+              </ul>
+            </div>
+            <button onClick={() => setShowReleaseModal(false)} className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono transition-all text-[#e3e3e3] hover:text-white">Close Changelog</button>
+          </div>
+        </div>
+      )}
+
+      {/* Agent Specifications Modal */}
+      {showAgentSpecsModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#121316] border border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl font-sans relative animate-in zoom-in duration-200">
+            <button onClick={() => setShowAgentSpecsModal(false)} className="absolute top-4 right-4 text-[#9ca3af] hover:text-white font-mono text-lg">×</button>
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <img src="/app-ai.svg" alt="Agent" className="w-5 h-5" /> Pathfinder Agent Details
+            </h3>
+            <div className="font-mono text-[11px] text-[#9ca3af] space-y-3 bg-black/30 p-4 rounded-xl leading-relaxed">
+              <p><span className="text-[#BC00FF] font-bold">Model Engine:</span> Gemini-2.0-Flash (Dynamic routing)</p>
+              <p><span className="text-[#BC00FF] font-bold">Role:</span> Pathfinder Educational Routing Engine</p>
+              <p><span className="text-[#BC00FF] font-bold">Instruction:</span> Maps interest and level to a 3-step hardware/software roadmap.</p>
+              <p><span className="text-[#BC00FF] font-bold">Status:</span> ONLINE (Port 5000 Handshake)</p>
+            </div>
+            <button onClick={() => setShowAgentSpecsModal(false)} className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono transition-all text-[#e3e3e3] hover:text-white">Acknowledge Specs</button>
+          </div>
+        </div>
+      )}
+
       <Sidebar 
         activeView={activeView} 
         onViewChange={setActiveView} 
@@ -498,9 +656,12 @@ function App() {
         activeSessionId={activeSessionId}
         onSessionSelect={setActiveSessionId}
         onNewSession={handleNewSession}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onOpenAgentSpecs={() => setShowAgentSpecsModal(true)}
       />
       
-      <div className="flex-1 flex flex-col h-full relative">
+      <div className="flex-1 flex flex-col h-full relative transition-all duration-300">
         <header className="flex justify-between items-center p-6 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-md z-10 absolute top-0 left-0 right-0">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#BC00FF] to-[#00D1FF] p-[1px]">
@@ -513,23 +674,69 @@ function App() {
           
           <div className="flex items-center gap-6">
             <div className="hidden lg:flex items-center gap-4 text-[#9ca3af] text-[11px] font-mono uppercase tracking-widest border-r border-white/10 pr-6 mr-2">
-                <div className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer">
+                <div 
+                  onClick={() => setShowSecurityModal(true)}
+                  className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer"
+                >
                     <ShieldCheck size={14} className="text-green-500" />
                     <span>Secure Core</span>
                 </div>
-                <div className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer">
-                    <Zap size={14} className="text-yellow-500" />
-                    <span>98ms Latency</span>
+                <div 
+                  onClick={handleCheckLatency}
+                  className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer"
+                >
+                    <Zap size={14} className={`text-yellow-500 ${latencyTesting ? 'animate-spin' : ''}`} />
+                    <span>{latencyTesting ? 'Pinging...' : `${latency}ms Latency`}</span>
                 </div>
             </div>
             
-            <div className="flex items-center gap-4">
-                <button className="text-[#9ca3af] hover:bg-white/10 p-2 rounded-lg transition-colors hidden md:block">
-                <span className="text-xs font-mono bg-[#121316] border border-white/10 px-3 py-1.5 rounded-lg text-[#00D1FF]">v1.0.beta</span>
+            <div className="flex items-center gap-4 relative">
+                <button 
+                  onClick={() => setShowReleaseModal(true)}
+                  className="text-[#9ca3af] hover:bg-white/10 p-2 rounded-lg transition-colors hidden md:block"
+                >
+                  <span className="text-xs font-mono bg-[#121316] border border-white/10 px-3 py-1.5 rounded-lg text-[#00D1FF]">v1.0.beta</span>
                 </button>
-                <button className="p-2 text-[#9ca3af] hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                  <MoreVertical size={20} />
-                </button>
+                
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowHeaderDropdown(!showHeaderDropdown)}
+                    className={`p-2 rounded-lg transition-colors ${showHeaderDropdown ? 'bg-white/10 text-white' : 'text-[#9ca3af] hover:text-white hover:bg-white/5'}`}
+                  >
+                    <MoreVertical size={20} />
+                  </button>
+                  
+                  <AnimatePresence>
+                    {showHeaderDropdown && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute left-0 mt-2 w-48 bg-[#121316]/95 border border-white/10 rounded-xl shadow-2xl py-1 z-50 text-left font-mono text-xs backdrop-blur-md"
+                      >
+                        <button 
+                          onClick={handleRunDiagnostics}
+                          className="w-full text-left px-4 py-2.5 hover:bg-white/5 text-[#9ca3af] hover:text-white"
+                        >
+                          Diagnostics
+                        </button>
+                        <button 
+                          onClick={handleCopyEndpointAddress}
+                          className="w-full text-left px-4 py-2.5 hover:bg-white/5 text-[#9ca3af] hover:text-white"
+                        >
+                          Copy API Endpoint
+                        </button>
+                        <div className="border-t border-white/5 my-1"></div>
+                        <button 
+                          onClick={handleClearAllSessions}
+                          className="w-full text-left px-4 py-2.5 hover:bg-red-500/10 text-red-400 hover:text-red-300"
+                        >
+                          Clear Session Logs
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
             </div>
           </div>
         </header>

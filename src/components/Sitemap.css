@@ -1,0 +1,175 @@
+.ai-sitemap-page {
+  background-color: #060913;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #e2e8f0;
+  font-family: 'Nunito', 'Outfit', 'Inter', sans-serif;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(189, 0, 255, 0.05), transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(189, 0, 255, 0.02), transparent 50%);
+}
+
+.ai-sitemap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #090B10;
+  border-bottom: 1px solid rgba(189, 0, 255, 0.1);
+  z-index: 20;
+}
+
+.ai-sitemap-back-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  font-size: 0.95rem;
+}
+
+.ai-sitemap-back-btn:hover {
+  opacity: 0.8;
+  color: #bd00ff;
+}
+
+.ai-sitemap-brand {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ai-sitemap-container {
+  flex: 1;
+  padding: 60px 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.ai-sitemap-card {
+  width: 100%;
+  max-width: 900px;
+  background: rgba(10, 15, 30, 0.7);
+  border: 1px solid rgba(189, 0, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  backdrop-filter: blur(25px);
+  border-radius: 24px;
+  padding: 48px;
+}
+
+.ai-sitemap-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #bd00ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ai-sitemap-subtitle {
+  color: #94a3b8;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 650px;
+  margin-bottom: 40px;
+}
+
+.ai-sitemap-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+@media (max-width: 768px) {
+  .ai-sitemap-grid {
+    grid-template-columns: 1fr;
+  }
+  .ai-sitemap-card {
+    padding: 30px 20px;
+  }
+}
+
+.ai-sitemap-column {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.ai-sitemap-col-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 12px;
+}
+
+.ai-sitemap-icon {
+  color: #bd00ff;
+}
+
+.ai-sitemap-col-header h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.ai-sitemap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ai-sitemap-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-sitemap-link,
+.ai-sitemap-btn-link {
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 1.05rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  transition: color 0.2s;
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ai-sitemap-link:hover,
+.ai-sitemap-btn-link:hover {
+  color: #bd00ff;
+}
+
+.ai-sitemap-desc {
+  color: #64748b;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.ai-external-icon {
+  opacity: 0.6;
+}

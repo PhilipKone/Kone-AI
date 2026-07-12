@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -14,7 +14,7 @@ import {
   RefreshCw, 
   Trash2, 
   Check, 
-  Copy 
+  History 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Session, AIParameters } from '../App';
@@ -26,6 +26,7 @@ interface MissionSimulatorProps {
   parameters: AIParameters;
   onUpdateParameters: React.Dispatch<React.SetStateAction<AIParameters>>;
   onClearSession: () => void;
+  onShowToast: (message: string, type?: 'info' | 'success' | 'warning') => void;
 }
 
 interface ProviderItem {
@@ -38,13 +39,20 @@ interface ProviderItem {
 
 type DBStatus = 'offline' | 'connecting' | 'online';
 
+interface DebugLog {
+  timestamp: string;
+  level: 'SYSTEM' | 'INFO' | 'API' | 'DB' | 'USER' | 'ERROR';
+  text: string;
+}
+
 const MissionSimulator: React.FC<MissionSimulatorProps> = ({
   session,
   onSendMessage,
   isAnalyzing,
   parameters,
   onUpdateParameters,
-  onClearSession
+  onClearSession,
+  onShowToast
 }) => {
   const [input, setInput] = useState<string>('');
   const [showThinking, setShowThinking] = useState<boolean>(true);
@@ -52,7 +60,43 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
   const [showProviderMenu, setShowProviderMenu] = useState<boolean>(false);
   const [showParameters, setShowParameters] = useState<boolean>(false);
   const [dbStatus, setDbStatus] = useState<DBStatus>('offline');
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [showConsoleDebug, setShowConsoleDebug] = useState<boolean>(false);
+
+  // Console Logs State
+  const [consoleLogs, setConsoleLogs] = useState<DebugLog[]>([
+    { timestamp: '12:00:00', level: 'SYSTEM', text: 'Kone AI OS kernel v1.0.beta initialized.' },
+    { timestamp: '12:00:01', level: 'SYSTEM', text: 'Mounting hardware telemetry subsystems...' },
+    { timestamp: '12:00:02', level: 'DB', text: 'Offline telemetry cache bound successfully.' },
+    { timestamp: '12:00:03', level: 'API', text: 'Core endpoint mapped to http://localhost:5000/api/synthesize' },
+    { timestamp: '12:00:04', level: 'INFO', text: 'Initialized Gemini-2.0-Flash engine.' }
+  ]);
+
+  const logEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [consoleLogs, showConsoleDebug]);
+
+  // Log session updates
+  useEffect(() => {
+    if (session.messages.length > 0) {
+      const lastMsg = session.messages[session.messages.length - 1];
+      const time = new Date().toLocaleTimeString();
+      if (lastMsg.role === 'user') {
+        addLog('USER', `Query dispatched: "${lastMsg.content.substring(0, 30)}..."`);
+      } else {
+        addLog('API', `POST /api/synthesize - 200 OK (${lastMsg.activeProvider})`);
+        addLog('INFO', `Pathway successfully synthesized with ${lastMsg.roadmap?.length || 0} nodes.`);
+      }
+    }
+  }, [session.messages]);
+
+  const addLog = (level: DebugLog['level'], text: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setConsoleLogs(prev => [...prev, { timestamp, level, text }]);
+  };
 
   const providers: ProviderItem[] = [
     { id: 'gemini-flash', name: 'Gemini Flash', icon: <Sparkles size={14} className="text-[#00D1FF]" />, desc: 'Fast & Lightweight' },
@@ -78,18 +122,19 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
   const handleToggleDB = () => {
     if (dbStatus === 'offline') {
       setDbStatus('connecting');
+      addLog('DB', 'Initiating live DB handshake sequence...');
+      onShowToast("Initiating live database handshake...", "info");
+      
       setTimeout(() => {
         setDbStatus('online');
+        addLog('DB', 'Handshake completed. Telemetry stream connected.');
+        onShowToast("Database connection established!", "success");
       }, 1200);
     } else if (dbStatus === 'online') {
       setDbStatus('offline');
+      addLog('DB', 'Telemetry stream disconnected.');
+      onShowToast("Database connection terminated.", "warning");
     }
-  };
-
-  const handleCopyEndpoint = (text: string, index: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
   };
 
   return (
@@ -183,6 +228,39 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                     </div>
                 </div>
             )}
+
+            {/* Console Debug Drawer */}
+            <AnimatePresence>
+              {showConsoleDebug && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 200, opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="w-full max-w-3xl border border-white/10 rounded-xl bg-black/40 overflow-hidden flex flex-col font-mono text-[11px] h-[200px]"
+                >
+                  <div className="flex justify-between items-center bg-[#121316] px-4 py-2 border-b border-white/5">
+                    <span className="text-[#00D1FF] flex items-center gap-1.5"><Terminal size={14} /> Console Debugger</span>
+                    <button onClick={() => setShowConsoleDebug(false)} className="text-[#9ca3af] hover:text-white font-sans text-xs">×</button>
+                  </div>
+                  <div className="flex-1 p-4 overflow-y-auto space-y-1 custom-scrollbar text-left">
+                    {consoleLogs.map((log, i) => (
+                      <div key={i} className="flex gap-2">
+                        <span className="text-[#9ca3af]/40">[{log.timestamp}]</span>
+                        <span className={`font-bold ${
+                          log.level === 'SYSTEM' ? 'text-[#BC00FF]' :
+                          log.level === 'API' ? 'text-green-400' :
+                          log.level === 'DB' ? 'text-[#00D1FF]' :
+                          log.level === 'USER' ? 'text-yellow-500' :
+                          'text-white'
+                        }`}>[{log.level}]</span>
+                        <span className="text-[#e3e3e3]">{log.text}</span>
+                      </div>
+                    ))}
+                    <div ref={logEndRef}></div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
         </div>
 
         {/* Floating Input Box (Terminal Style) */}
@@ -340,7 +418,20 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                             </button>
                         </div>
                         
-                        <div className="flex items-center gap-1 md:gap-2">
+                        <div className="flex items-center gap-1.5 md:gap-2">
+                             <button 
+                                onClick={() => setShowConsoleDebug(!showConsoleDebug)}
+                                className={`flex items-center gap-2 px-3 py-1 rounded-md transition-colors text-xs font-mono border ${
+                                    showConsoleDebug 
+                                    ? 'bg-[#BC00FF]/10 border-[#BC00FF]/30 text-white animate-pulse' 
+                                    : 'hover:bg-white/5 border-transparent text-[#9ca3af]'
+                                }`}
+                                title="Open Console Debugger"
+                             >
+                                <Terminal size={14} />
+                                <span>Console Debug</span>
+                             </button>
+
                              <button 
                                 onClick={handleToggleDB}
                                 className={`flex items-center gap-2 px-3 py-1 rounded-md transition-all text-xs font-mono border ${

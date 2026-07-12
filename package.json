@@ -10,7 +10,7 @@
                     "lint":  "eslint .",
                     "preview":  "vite preview",
                     "predeploy":  "npm run build",
-                    "deploy":  "gh-pages -d dist --dotfiles -r https://github.com/PhilipKone/Kone-AI.git",
+                    "deploy":  "gh-pages -d dist --dotfiles -f -r https://github.com/PhilipKone/Kone-AI.git",
                     "postinstall":  "node patch-react-snap.cjs"
                 },
     "dependencies":  {
