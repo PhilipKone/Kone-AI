@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ChevronLeft, Cpu, Globe, ExternalLink } from 'lucide-react';
 import './Sitemap.css';
 
@@ -8,6 +8,40 @@ interface SitemapProps {
 }
 
 const Sitemap: React.FC<SitemapProps> = ({ onBack, onNavigate }) => {
+  useEffect(() => {
+    const SCHEMA_ID = 'sitemap-breadcrumb-jsonld';
+    const existingScript = document.getElementById(SCHEMA_ID);
+    if (existingScript) existingScript.remove();
+
+    const script = document.createElement('script');
+    script.id = SCHEMA_ID;
+    script.type = 'application/ld+json';
+    script.innerHTML = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Kone AI",
+          "item": "https://ai.koneacademy.io/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Sitemap",
+          "item": "https://ai.koneacademy.io/"
+        }
+      ]
+    });
+    document.head.appendChild(script);
+
+    return () => {
+      const scriptToRemove = document.getElementById(SCHEMA_ID);
+      if (scriptToRemove) scriptToRemove.remove();
+    };
+  }, []);
+
   return (
     <div className="ai-sitemap-page">
       {/* Header action bar */}
