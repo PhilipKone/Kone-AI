@@ -95,6 +95,7 @@ const PlaceholderView: React.FC<PlaceholderViewProps> = ({
 /* ── Main Component ───────────────────────────────────── */
 
 function App() {
+  const API_URL = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:5000';
   const [activeView, setActiveView] = useState<string>('synthesis');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   
@@ -222,7 +223,7 @@ function App() {
 
   const handleCopyEndpointAddress = () => {
     setShowHeaderDropdown(false);
-    navigator.clipboard.writeText("http://localhost:5000/api/synthesize");
+    navigator.clipboard.writeText(`${API_URL}/api/synthesize`);
     showToast("API Endpoint copied to clipboard!", "success");
   };
 
@@ -255,7 +256,7 @@ function App() {
 
     try {
       // 2. Fetch from backend server
-      const response = await axios.post('http://localhost:5000/api/synthesize', {
+      const response = await axios.post(`${API_URL}/api/synthesize`, {
         query: text,
         provider,
         temperature: parameters.temperature,

@@ -54,6 +54,7 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
   onClearSession,
   onShowToast
 }) => {
+  const API_URL = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:5000';
   const [input, setInput] = useState<string>('');
   const [showThinking, setShowThinking] = useState<boolean>(true);
   const [provider, setProvider] = useState<string>('gemini-flash'); 
@@ -67,7 +68,7 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
     { timestamp: '12:00:00', level: 'SYSTEM', text: 'Kone AI OS kernel v1.0.beta initialized.' },
     { timestamp: '12:00:01', level: 'SYSTEM', text: 'Mounting hardware telemetry subsystems...' },
     { timestamp: '12:00:02', level: 'DB', text: 'Offline telemetry cache bound successfully.' },
-    { timestamp: '12:00:03', level: 'API', text: 'Core endpoint mapped to http://localhost:5000/api/synthesize' },
+    { timestamp: '12:00:03', level: 'API', text: `Core endpoint mapped to ${API_URL}/api/synthesize` },
     { timestamp: '12:00:04', level: 'INFO', text: 'Initialized Gemini-2.0-Flash engine.' }
   ]);
 
