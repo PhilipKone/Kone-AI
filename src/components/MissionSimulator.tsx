@@ -199,9 +199,9 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                                 
                                 {msg.roadmap && msg.roadmap.length > 0 && (
                                     <div className="space-y-4 mt-8">
-                                        <h4 className="font-mono text-sm uppercase tracking-widest text-[#00D1FF] mb-4 flex items-center gap-2">
+                                        <h2 className="font-mono text-sm uppercase tracking-widest text-[#00D1FF] mb-4 flex items-center gap-2">
                                             <Zap size={16} /> Projected Pathway
-                                        </h4>
+                                        </h2>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             {msg.roadmap.map((item, i) => (
                                                 <div key={i} className="bg-[#121316] border border-white/5 rounded-xl p-5 hover:border-[#BC00FF]/50 transition-colors cursor-default relative overflow-hidden group">
@@ -344,6 +344,9 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                     <div className="flex items-start px-4 py-2">
                         <span className="text-[#00D1FF] font-mono mt-3 mr-3 text-lg">❯</span>
                         <input 
+                            id="ai-query-input"
+                            name="aiQuery"
+                            aria-label="Query AI model"
                             type="text" 
                             placeholder={`Query via ${providers.find(p => p.id === provider)?.name}...`} 
                             className="w-full bg-transparent border-none text-[#e3e3e3] font-mono text-[14px] py-3 outline-none placeholder:text-[#9ca3af]/50"
@@ -355,6 +358,7 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                         <button 
                             onClick={handleGenerate}
                             disabled={isAnalyzing || !input.trim()}
+                            aria-label="Send query"
                             className={`p-3 ml-2 rounded-lg transition-colors flex-shrink-0 ${isAnalyzing || !input.trim() ? 'bg-white/5 text-white/30' : 'bg-[#BC00FF]/20 text-[#BC00FF] hover:bg-[#BC00FF] hover:text-white border border-[#BC00FF]/50'}`}
                         >
                             <Send size={18} className="ml-0.5" />

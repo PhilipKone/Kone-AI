@@ -670,7 +670,7 @@ function App() {
                  <img src="/app-ai.svg" alt="Kone AI" className="w-5 h-5" />
                </div>
              </div>
-             <div className="text-[20px] font-semibold tracking-tight bg-gradient-to-r from-[#BC00FF] to-[#00D1FF] bg-clip-text text-transparent cursor-pointer" onClick={() => { setActiveView('synthesis'); }}>Kone AI</div>
+             <h1 className="text-[20px] font-semibold tracking-tight bg-gradient-to-r from-[#BC00FF] to-[#00D1FF] bg-clip-text text-transparent cursor-pointer m-0" onClick={() => { setActiveView('synthesis'); }}>Kone AI</h1>
           </div>
           
           <div className="flex items-center gap-6">
@@ -702,6 +702,7 @@ function App() {
                 <div className="relative">
                   <button 
                     onClick={() => setShowHeaderDropdown(!showHeaderDropdown)}
+                    aria-label="More options"
                     className={`p-2 rounded-lg transition-colors ${showHeaderDropdown ? 'bg-white/10 text-white' : 'text-[#9ca3af] hover:text-white hover:bg-white/5'}`}
                   >
                     <MoreVertical size={20} />

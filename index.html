@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/app-ai.svg" />
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
@@ -11,6 +11,10 @@
   <meta name="theme-color" content="#1e1e1e" />
   <meta name="description" content="Kone AI: Professional Machine Learning and Intelligent Automation hub. Building custom artificial intelligence and cognitive computing solutions." />
   <link rel="canonical" href="https://ai.koneacademy.io/" />
+
+  <!-- LLM Context & Agentic Discovery -->
+  <link rel="help" type="text/markdown" href="/llms.txt" />
+  <meta name="ai-agent" content="enabled" />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
@@ -33,6 +37,37 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- WebMCP Agentic Schemas -->
+  <script type="application/webmcp+json">
+    {
+      "tools": [
+        {
+          "name": "simulate_neural_mission",
+          "description": "Simulates multi-agent reinforcement learning or computer vision missions with interactive parameter telemetry.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "missionType": {
+                "type": "string",
+                "enum": ["obstacle_avoidance", "crop_spectral_analysis", "solar_grid_optimization"],
+                "description": "Mission domain"
+              }
+            },
+            "required": ["missionType"]
+          }
+        },
+        {
+          "name": "get_model_architectures",
+          "description": "Retrieves the active neural model configurations and pipeline stages for edge and cloud deployment.",
+          "parameters": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      ]
+    }
+  </script>
   
   <!-- Structured Data (Invisible SEO) -->
   <script type="application/ld+json">

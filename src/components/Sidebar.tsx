@@ -216,11 +216,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             title={collapsed ? "Subdomain Sitemap" : undefined}
         >
           <div className="flex items-center gap-3">
-            <Database size={18} className={activeView === 'sitemap' ? 'text-[#bd00ff]' : ''} />
-            {!collapsed && <span style={{ fontWeight: 'bold', color: '#bd00ff' }}>Subdomain Sitemap</span>}
+            <Database size={18} className={activeView === 'sitemap' ? 'text-[#d946ef]' : ''} />
+            {!collapsed && <span style={{ fontWeight: 'bold', color: '#d946ef' }}>Subdomain Sitemap</span>}
           </div>
           {!collapsed && (
-            <div className={`w-1.5 h-1.5 rounded-full ${activeView === 'sitemap' ? 'bg-[#bd00ff]' : 'bg-transparent'} shadow-[0_0_8px_currentColor]`}></div>
+            <div className={`w-1.5 h-1.5 rounded-full ${activeView === 'sitemap' ? 'bg-[#d946ef]' : 'bg-transparent'} shadow-[0_0_8px_currentColor]`}></div>
           )}
         </div>
 
