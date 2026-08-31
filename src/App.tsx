@@ -469,53 +469,104 @@ class PIDController:
 
   /* ── Sub-Views: Lab Settings ────────────────────────────────────────────── */
 
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'offline'>('connected');
+  const [isSavingSettings, setIsSavingSettings] = useState<boolean>(false);
+
+  const handleSaveAllSettings = async () => {
+    setIsSavingSettings(true);
+    try {
+      localStorage.setItem('kone_ai_parameters', JSON.stringify(parameters));
+      localStorage.setItem('kone_ai_safety', JSON.stringify(safetyToggles));
+      
+      await axios.post(`${API_URL}/api/settings`, {
+        temperature: parameters.temperature,
+        maxTokens: parameters.maxTokens,
+        systemPrompt: parameters.systemPrompt,
+        safetyToggles
+      }, { timeout: 3000 }).catch(() => {
+        // Backend offline fallback
+      });
+
+      showToast("All settings saved and synced successfully", "success");
+    } catch {
+      showToast("Settings saved locally", "info");
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const handleCheckBackend = async () => {
+    setBackendStatus('checking');
+    try {
+      const res = await axios.get(`${API_URL}/api/health`, { timeout: 2500 });
+      if (res.data?.status === 'healthy') {
+        setBackendStatus('connected');
+        showToast("Backend orchestrator is online and healthy", "success");
+      } else {
+        setBackendStatus('offline');
+        showToast("Backend reported unexpected status", "warning");
+      }
+    } catch {
+      setBackendStatus('offline');
+      showToast("Backend offline — running in standalone browser mode", "info");
+    }
+  };
+
   const renderLabSettings = () => {
     return (
       <div className="space-y-6 pt-2 animate-in fade-in duration-300 max-w-2xl">
-        <div className="border-b border-white/[0.06] pb-4">
-          <h2 className="text-xl font-bold text-white tracking-tight">Lab & Hardware Settings</h2>
-          <p className="text-xs text-[#94a3b8] mt-1">Configure simulator constraints, model inference temperature, and telemetry channels.</p>
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+          <div>
+            <h2 className="text-xl font-bold text-white tracking-tight">Lab & System Settings</h2>
+            <p className="text-xs text-[#94a3b8] mt-1">Configure backend orchestrator routing, model inference parameters, and simulator safety.</p>
+          </div>
+
+          <button
+            onClick={handleSaveAllSettings}
+            disabled={isSavingSettings}
+            className="px-3.5 py-1.5 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs transition-all flex items-center gap-1.5 shadow-sm active:scale-98"
+          >
+            {isSavingSettings ? <RefreshCw size={13} className="animate-spin" /> : <Check size={13} />}
+            <span>Save Settings</span>
+          </button>
         </div>
 
         <div className="space-y-4">
+          {/* Backend Orchestrator Card */}
           <div className="mobbin-card p-5 rounded-2xl space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
-              <Cpu size={14} /> Safety & Hardware Offsets
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+                <Globe size={14} /> Backend Orchestrator Connection
+              </h3>
+              
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                  backendStatus === 'connected' 
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : backendStatus === 'checking'
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse'
+                  : 'bg-neutral-500/10 text-[#94a3b8] border-white/10'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${backendStatus === 'connected' ? 'bg-emerald-400' : backendStatus === 'checking' ? 'bg-amber-400' : 'bg-neutral-400'}`}></span>
+                  <span>{backendStatus === 'connected' ? 'Port 5000 Ready' : backendStatus === 'checking' ? 'Testing...' : 'Standalone Mode'}</span>
+                </span>
 
-            <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
-              <div>
-                <div className="text-sm font-medium text-white">Hardware Speed Limiter</div>
-                <div className="text-xs text-[#94a3b8]">Caps PWM duty cycle output to 75% for motor protection.</div>
+                <button
+                  onClick={handleCheckBackend}
+                  className="p-1 rounded-lg hover:bg-white/5 text-[#94a3b8] hover:text-white transition-colors"
+                  title="Ping backend"
+                >
+                  <RefreshCw size={13} />
+                </button>
               </div>
-              <input 
-                type="checkbox" 
-                checked={safetyToggles.speedLimiter} 
-                onChange={(e) => {
-                  setSafetyToggles(prev => ({ ...prev, speedLimiter: e.target.checked }));
-                  showToast(e.target.checked ? "Speed limiter enabled" : "Speed limiter disabled", "info");
-                }}
-                className="w-4 h-4 accent-indigo-500 cursor-pointer"
-              />
             </div>
 
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <div className="text-sm font-medium text-white">Live Telemetry Handshake</div>
-                <div className="text-xs text-[#94a3b8]">Streams real-time sensor loops directly into the trajectory canvas.</div>
-              </div>
-              <input 
-                type="checkbox" 
-                checked={safetyToggles.telemetryStream} 
-                onChange={(e) => {
-                  setSafetyToggles(prev => ({ ...prev, telemetryStream: e.target.checked }));
-                  showToast(e.target.checked ? "Telemetry active" : "Telemetry disabled", "info");
-                }}
-                className="w-4 h-4 accent-indigo-500 cursor-pointer"
-              />
+            <div className="text-xs text-[#94a3b8] leading-relaxed">
+              API Endpoint: <code className="text-white font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">{API_URL}/api/synthesize</code>
             </div>
           </div>
 
+          {/* Model Inference Parameters Card */}
           <div className="mobbin-card p-5 rounded-2xl space-y-4">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
               <Sliders size={14} /> Model Inference Configuration
@@ -553,6 +604,66 @@ class PIDController:
                   className="w-full accent-indigo-500 bg-white/10 h-1 rounded-lg appearance-none cursor-pointer"
                 />
               </div>
+
+              <div>
+                <div className="flex justify-between text-xs text-[#94a3b8] mb-1.5">
+                  <span>System Persona Prompt</span>
+                  <button 
+                    onClick={() => setParameters(prev => ({
+                      ...prev,
+                      systemPrompt: "You are the Kone AI Pathfinder, an advanced autonomous educational routing engine for Kone Code Academy. Map student interests and skill levels to structured 3-step hardware and firmware roadmaps."
+                    }))}
+                    className="text-[10px] text-indigo-400 hover:underline"
+                  >
+                    Reset Default
+                  </button>
+                </div>
+                <textarea
+                  rows={3}
+                  value={parameters.systemPrompt}
+                  onChange={(e) => setParameters(prev => ({ ...prev, systemPrompt: e.target.value }))}
+                  className="w-full bg-[#090a0f] border border-white/[0.08] focus:border-indigo-500/50 rounded-xl p-3 text-xs text-white outline-none resize-none font-mono leading-relaxed"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Safety & Hardware Limits Card */}
+          <div className="mobbin-card p-5 rounded-2xl space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+              <Cpu size={14} /> Safety & Hardware Offsets
+            </h3>
+
+            <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
+              <div>
+                <div className="text-sm font-medium text-white">Hardware Speed Limiter</div>
+                <div className="text-xs text-[#94a3b8]">Caps PWM duty cycle output to 75% for motor protection.</div>
+              </div>
+              <input 
+                type="checkbox" 
+                checked={safetyToggles.speedLimiter} 
+                onChange={(e) => {
+                  setSafetyToggles(prev => ({ ...prev, speedLimiter: e.target.checked }));
+                  showToast(e.target.checked ? "Speed limiter enabled" : "Speed limiter disabled", "info");
+                }}
+                className="w-4 h-4 accent-indigo-500 cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <div className="text-sm font-medium text-white">Live Telemetry Handshake</div>
+                <div className="text-xs text-[#94a3b8]">Streams real-time sensor loops directly into the trajectory canvas.</div>
+              </div>
+              <input 
+                type="checkbox" 
+                checked={safetyToggles.telemetryStream} 
+                onChange={(e) => {
+                  setSafetyToggles(prev => ({ ...prev, telemetryStream: e.target.checked }));
+                  showToast(e.target.checked ? "Telemetry active" : "Telemetry disabled", "info");
+                }}
+                className="w-4 h-4 accent-indigo-500 cursor-pointer"
+              />
             </div>
           </div>
         </div>

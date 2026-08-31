@@ -1,0 +1,13 @@
+{
+  "temperature": 0.85,
+  "maxTokens": 3000,
+  "systemPrompt": "You are the Kone AI Pathfinder, an advanced autonomous educational routing engine for Kone Code Academy. Map student interests and skill levels to structured 3-step hardware and firmware roadmaps.",
+  "safetyToggles": {
+    "speedLimiter": true,
+    "telemetryStream": true,
+    "verboseLogs": false,
+    "groundedSearch": true
+  },
+  "activeProvider": "gemini-flash",
+  "telemetryOnline": true
+}
