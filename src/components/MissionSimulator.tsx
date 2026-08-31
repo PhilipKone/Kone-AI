@@ -364,15 +364,15 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                             <Send size={18} className="ml-0.5" />
                         </button>
                     </div>
-                    <div className="flex justify-between items-center px-4 pb-2 pt-1">
-                        <div className="flex items-center gap-1 md:gap-2 relative">
+                    <div className="flex items-center justify-between px-3 md:px-4 pb-2 pt-1 gap-1.5 md:gap-2 overflow-x-auto no-scrollbar">
+                        <div className="flex items-center gap-1.5 md:gap-2 relative flex-shrink-0">
                             <button 
                                 onClick={() => setShowProviderMenu(!showProviderMenu)}
-                                className="flex items-center gap-2 px-3 py-1 hover:bg-white/5 rounded-md text-[#9ca3af] transition-colors text-xs font-mono border border-white/5"
+                                className="flex items-center gap-1.5 px-2.5 py-1 hover:bg-white/5 rounded-lg text-[#9ca3af] transition-colors text-xs font-mono border border-white/5 bg-white/[0.02]"
                             >
                                 {providers.find(p => p.id === provider)?.icon}
-                                <span>{providers.find(p => p.id === provider)?.name}</span>
-                                <ChevronUp size={14} className={showProviderMenu ? '' : 'rotate-180'} />
+                                <span className="truncate max-w-[85px] sm:max-w-none">{providers.find(p => p.id === provider)?.name}</span>
+                                <ChevronUp size={13} className={showProviderMenu ? '' : 'rotate-180'} />
                             </button>
                             
                             <AnimatePresence>
@@ -381,7 +381,7 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
-                                        className="absolute bottom-full left-0 mb-2 w-64 bg-[#121316] border border-white/10 rounded-lg shadow-xl overflow-hidden z-50 p-1"
+                                        className="absolute bottom-full left-0 mb-2 w-64 max-w-[90vw] bg-[#121316] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 p-1 backdrop-blur-md"
                                     >
                                         <div className="px-3 py-2 text-[10px] uppercase tracking-widest text-[#BC00FF] font-bold border-b border-white/5 mb-1">Select Engine</div>
                                         {providers.map((p) => (
@@ -391,9 +391,9 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                                                     setProvider(p.id);
                                                     setShowProviderMenu(false);
                                                 }}
-                                                className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-colors text-xs font-mono ${provider === p.id ? 'bg-[#BC00FF]/20 text-white' : 'text-[#9ca3af] hover:bg-white/5'}`}
+                                                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs font-mono ${provider === p.id ? 'bg-[#BC00FF]/20 text-white' : 'text-[#9ca3af] hover:bg-white/5'}`}
                                             >
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2.5">
                                                     {p.icon}
                                                     <div className="flex flex-col items-start">
                                                         <div className="flex items-center gap-2">
@@ -412,52 +412,58 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
 
                             <button 
                                 onClick={() => setShowParameters(!showParameters)}
-                                className={`flex items-center gap-2 px-3 py-1 rounded-md transition-colors text-xs font-mono border ${
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors text-xs font-mono border ${
                                     showParameters 
-                                    ? 'bg-[#BC00FF]/10 border-[#BC00FF]/30 text-white' 
-                                    : 'hover:bg-white/5 border-transparent text-[#9ca3af]'
+                                    ? 'bg-[#BC00FF]/15 border-[#BC00FF]/40 text-white' 
+                                    : 'hover:bg-white/5 border-white/5 text-[#9ca3af] bg-white/[0.02]'
                                 }`}
                             >
-                                <Settings2 size={14} />
-                                <span>Parameters</span>
+                                <Settings2 size={13} />
+                                <span className="hidden sm:inline">Parameters</span>
                             </button>
                         </div>
                         
-                        <div className="flex items-center gap-1.5 md:gap-2">
+                        <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
                              <button 
                                 onClick={() => setShowConsoleDebug(!showConsoleDebug)}
-                                className={`flex items-center gap-2 px-3 py-1 rounded-md transition-colors text-xs font-mono border ${
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors text-xs font-mono border ${
                                     showConsoleDebug 
-                                    ? 'bg-[#BC00FF]/10 border-[#BC00FF]/30 text-white animate-pulse' 
-                                    : 'hover:bg-white/5 border-transparent text-[#9ca3af]'
+                                    ? 'bg-[#BC00FF]/15 border-[#BC00FF]/40 text-white animate-pulse' 
+                                    : 'hover:bg-white/5 border-white/5 text-[#9ca3af] bg-white/[0.02]'
                                 }`}
                                 title="Open Console Debugger"
                              >
-                                <Terminal size={14} />
-                                <span>Console Debug</span>
+                                <Terminal size={13} />
+                                <span className="hidden sm:inline">Console Debug</span>
+                                <span className="sm:hidden">Debug</span>
                              </button>
 
                              <button 
                                 onClick={handleToggleDB}
-                                className={`flex items-center gap-2 px-3 py-1 rounded-md transition-all text-xs font-mono border ${
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all text-xs font-mono border ${
                                     dbStatus === 'online'
-                                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                                    ? 'bg-green-500/15 border-green-500/40 text-green-400'
                                     : dbStatus === 'connecting'
-                                    ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400 animate-pulse'
-                                    : 'bg-white/5 border-white/5 text-[#9ca3af] hover:text-white'
+                                    ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-400 animate-pulse'
+                                    : 'bg-white/[0.02] border-white/5 text-[#9ca3af] hover:text-white hover:bg-white/5'
                                 }`}
                              >
-                                <ShieldAlert size={14} className={
+                                <ShieldAlert size={13} className={
                                     dbStatus === 'online' ? 'text-green-400' :
                                     dbStatus === 'connecting' ? 'text-yellow-400' :
                                     'text-[#9ca3af]'
                                 } />
-                                <span>
+                                <span className="hidden sm:inline">
                                     {dbStatus === 'online' ? 'Live DB Connected' :
                                      dbStatus === 'connecting' ? 'Handshaking...' :
                                      'Connect Live DB'}
                                 </span>
-                            </button>
+                                <span className="sm:hidden">
+                                    {dbStatus === 'online' ? 'Live DB' :
+                                     dbStatus === 'connecting' ? 'Sync...' :
+                                     'Live DB'}
+                                </span>
+                             </button>
                         </div>
                     </div>
                 </div>

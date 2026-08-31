@@ -14,7 +14,7 @@ Kone AI investigates and implements production-grade artificial intelligence sys
 ## Parent Ecosystem & Federated Links
 
 - [Kone Academy (Hub)](https://www.koneacademy.io/): Central learning portal and technology group.
-- [Kone Technologies (Parent)](https://konetech.koneacademy.io/): Corporate holding organization.
+- [Kone Technologies (Parent)](https://tech.koneacademy.io/): Corporate holding organization.
 - [Kone Code (Engineering)](https://code.koneacademy.io/): Backend model serving, APIs, and web infrastructure.
 - [Kone Lab (Hardware)](https://lab.koneacademy.io/): Edge ML inference on micro-controllers and embedded sensors.
 - [Kone Farms (Agritech)](https://farms.koneacademy.io/): Predictive crop yield modeling and soil moisture forecasting.

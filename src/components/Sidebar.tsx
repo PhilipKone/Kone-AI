@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Search, Database, ChevronRight, Plus, Settings, TerminalSquare, History } from 'lucide-react';
+import { Menu, Search, Database, ChevronRight, Plus, Settings, TerminalSquare, History, X } from 'lucide-react';
 import { Session } from '../App';
 
 interface SidebarProps {
@@ -12,6 +12,8 @@ interface SidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
   onOpenAgentSpecs: () => void;
+  isOpenMobile?: boolean;
+  onCloseMobile?: () => void;
 }
 
 interface MenuItem {
@@ -30,7 +32,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   onNewSession,
   collapsed,
   onToggleCollapse,
-  onOpenAgentSpecs
+  onOpenAgentSpecs,
+  isOpenMobile = false,
+  onCloseMobile
 }) => {
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -47,26 +51,56 @@ const Sidebar: React.FC<SidebarProps> = ({
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  return (
-    <div className={`h-screen bg-[#121316] flex flex-col text-[#e3e3e3] text-[14px] overflow-y-auto border-l border-white/5 hidden md:flex transition-all duration-300 ${
-      collapsed ? 'w-[72px]' : 'w-[280px]'
-    }`}>
+  const handleSelectView = (view: string) => {
+    onViewChange(view);
+    if (onCloseMobile) onCloseMobile();
+  };
+
+  const handleSelectSession = (id: string) => {
+    onSessionSelect(id);
+    onViewChange('synthesis');
+    if (onCloseMobile) onCloseMobile();
+  };
+
+  const sidebarBody = (isMobileMode = false) => (
+    <div className="flex flex-col h-full text-[#e3e3e3] text-[14px]">
       {/* Top controls */}
-      <div className={`flex items-center p-4 ${collapsed ? 'justify-center' : 'justify-between'}`}>
-        <Menu 
-          size={20} 
-          onClick={onToggleCollapse}
-          className="text-[#9ca3af] hover:text-[#00D1FF] cursor-pointer transition-colors" 
-        />
-        {!collapsed && (
-          <Search 
-            size={20} 
-            onClick={() => {
-              setShowSearch(!showSearch);
-              if (showSearch) setSearchQuery('');
-            }}
-            className={`cursor-pointer transition-colors ${showSearch ? 'text-[#00D1FF]' : 'text-[#9ca3af] hover:text-[#00D1FF]'}`} 
-          />
+      <div className={`flex items-center p-4 ${!isMobileMode && collapsed ? 'justify-center' : 'justify-between'} border-b border-white/5`}>
+        {isMobileMode ? (
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#BC00FF] to-[#00D1FF] p-[1px]">
+                <div className="w-full h-full bg-[#121316] rounded-[7px] flex items-center justify-center">
+                  <img src="/app-ai.svg" alt="Kone AI" className="w-4 h-4" />
+                </div>
+              </div>
+              <span className="font-bold text-white tracking-tight">Kone AI Menu</span>
+            </div>
+            <button 
+              onClick={onCloseMobile}
+              className="p-1.5 rounded-lg text-[#9ca3af] hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        ) : (
+          <>
+            <Menu 
+              size={20} 
+              onClick={onToggleCollapse}
+              className="text-[#9ca3af] hover:text-[#00D1FF] cursor-pointer transition-colors" 
+            />
+            {!collapsed && (
+              <Search 
+                size={20} 
+                onClick={() => {
+                  setShowSearch(!showSearch);
+                  if (showSearch) setSearchQuery('');
+                }}
+                className={`cursor-pointer transition-colors ${showSearch ? 'text-[#00D1FF]' : 'text-[#9ca3af] hover:text-[#00D1FF]'}`} 
+              />
+            )}
+          </>
         )}
       </div>
 
@@ -205,44 +239,68 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {/* Sitemap, Settings & Bottom Sections */}
-      <div className="p-3 mb-2 space-y-1 mt-auto">
+      <div className="p-3 mb-2 space-y-1 mt-auto border-t border-white/5 pt-3">
         <div 
-            onClick={() => onViewChange('sitemap')}
+            onClick={() => handleSelectView('sitemap')}
             className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border ${
                 activeView === 'sitemap'
                 ? 'bg-white/5 border-white/10 text-white'
                 : 'border-transparent hover:bg-white/5 text-[#9ca3af] hover:text-white'
-            } ${collapsed ? 'justify-center' : ''}`}
-            title={collapsed ? "Subdomain Sitemap" : undefined}
+            } ${!isMobileMode && collapsed ? 'justify-center' : ''}`}
+            title={!isMobileMode && collapsed ? "Subdomain Sitemap" : undefined}
         >
           <div className="flex items-center gap-3">
             <Database size={18} className={activeView === 'sitemap' ? 'text-[#d946ef]' : ''} />
-            {!collapsed && <span style={{ fontWeight: 'bold', color: '#d946ef' }}>Subdomain Sitemap</span>}
+            {(isMobileMode || !collapsed) && <span style={{ fontWeight: 'bold', color: '#d946ef' }}>Subdomain Sitemap</span>}
           </div>
-          {!collapsed && (
+          {(isMobileMode || !collapsed) && (
             <div className={`w-1.5 h-1.5 rounded-full ${activeView === 'sitemap' ? 'bg-[#d946ef]' : 'bg-transparent'} shadow-[0_0_8px_currentColor]`}></div>
           )}
         </div>
 
         <div 
-            onClick={() => onViewChange('settings')}
+            onClick={() => handleSelectView('settings')}
             className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border ${
                 activeView === 'settings'
                 ? 'bg-white/5 border-white/10 text-white'
                 : 'border-transparent hover:bg-white/5 text-[#9ca3af] hover:text-white'
-            } ${collapsed ? 'justify-center' : ''}`}
-            title={collapsed ? "Lab Settings" : undefined}
+            } ${!isMobileMode && collapsed ? 'justify-center' : ''}`}
+            title={!isMobileMode && collapsed ? "Lab Settings" : undefined}
         >
           <div className="flex items-center gap-3">
             <Settings size={18} />
-            {!collapsed && <span>Lab Settings</span>}
+            {(isMobileMode || !collapsed) && <span className="font-semibold">Lab Settings</span>}
           </div>
-          {!collapsed && (
+          {(isMobileMode || !collapsed) && (
             <div className={`w-1.5 h-1.5 rounded-full ${activeView === 'settings' ? 'bg-[#00D1FF]' : 'bg-transparent'} shadow-[0_0_8px_currentColor]`}></div>
           )}
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className={`h-screen bg-[#121316] hidden md:flex flex-col border-l border-white/5 overflow-y-auto transition-all duration-300 ${
+        collapsed ? 'w-[72px]' : 'w-[280px]'
+      }`}>
+        {sidebarBody(false)}
+      </aside>
+
+      {/* Mobile Drawer Slide-over */}
+      {isOpenMobile && (
+        <div className="fixed inset-0 z-50 md:hidden flex justify-end">
+          <div 
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+            onClick={onCloseMobile}
+          />
+          <div className="relative w-[300px] max-w-[85vw] h-full bg-[#121316] border-l border-white/10 shadow-2xl z-10 animate-in slide-in-from-right duration-300 overflow-y-auto">
+            {sidebarBody(true)}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

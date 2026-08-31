@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import MissionSimulator from './components/MissionSimulator';
 import Sitemap from './components/Sitemap';
 import { 
+  Menu,
   MoreVertical, 
   Database, 
   Settings, 
@@ -102,8 +103,9 @@ function App() {
   // Toast State
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'warning' } | null>(null);
 
-  // Sidebar Collapse State
+  // Sidebar Collapse & Mobile Drawer State
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   // Header Dialogs/Modals State
   const [showSecurityModal, setShowSecurityModal] = useState<boolean>(false);
@@ -660,20 +662,22 @@ function App() {
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         onOpenAgentSpecs={() => setShowAgentSpecsModal(true)}
+        isOpenMobile={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
       />
       
       <div className="flex-1 flex flex-col h-full relative transition-all duration-300">
-        <header className="flex justify-between items-center p-6 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-md z-10 absolute top-0 left-0 right-0">
+        <header className="flex justify-between items-center px-4 py-4 md:p-6 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-md z-10 absolute top-0 left-0 right-0">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#BC00FF] to-[#00D1FF] p-[1px]">
                <div className="w-full h-full bg-[#0a0a0c] rounded-[11px] flex items-center justify-center">
                  <img src="/app-ai.svg" alt="Kone AI" className="w-5 h-5" />
                </div>
              </div>
-             <h1 className="text-[20px] font-semibold tracking-tight bg-gradient-to-r from-[#BC00FF] to-[#00D1FF] bg-clip-text text-transparent cursor-pointer m-0" onClick={() => { setActiveView('synthesis'); }}>Kone AI</h1>
+             <h1 className="text-[18px] md:text-[20px] font-bold tracking-tight bg-gradient-to-r from-[#BC00FF] to-[#00D1FF] bg-clip-text text-transparent cursor-pointer m-0" onClick={() => { setActiveView('synthesis'); }}>Kone AI</h1>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 md:gap-6">
             <div className="hidden lg:flex items-center gap-4 text-[#9ca3af] text-[11px] font-mono uppercase tracking-widest border-r border-white/10 pr-6 mr-2">
                 <div 
                   onClick={() => setShowSecurityModal(true)}
@@ -691,12 +695,21 @@ function App() {
                 </div>
             </div>
             
-            <div className="flex items-center gap-4 relative">
+            <div className="flex items-center gap-2 md:gap-4 relative">
                 <button 
                   onClick={() => setShowReleaseModal(true)}
                   className="text-[#9ca3af] hover:bg-white/10 p-2 rounded-lg transition-colors hidden md:block"
                 >
                   <span className="text-xs font-mono bg-[#121316] border border-white/10 px-3 py-1.5 rounded-lg text-[#00D1FF]">v1.0.beta</span>
+                </button>
+
+                {/* Mobile Navigation Drawer Trigger */}
+                <button
+                  onClick={() => setMobileMenuOpen(true)}
+                  aria-label="Open mobile navigation menu"
+                  className="p-2 rounded-lg text-[#9ca3af] hover:text-white hover:bg-white/10 transition-colors md:hidden border border-white/10 bg-white/5"
+                >
+                  <Menu size={18} />
                 </button>
                 
                 <div className="relative">
