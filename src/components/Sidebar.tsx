@@ -2,17 +2,17 @@ import React, { useState } from 'react';
 import { 
   Menu, 
   Search, 
-  Database, 
   Plus, 
   Settings, 
-  History, 
+  MessageSquare, 
   X,
-  Compass,
-  Cpu,
-  Sliders,
   Sparkles,
-  Layers,
-  Network
+  Cpu,
+  Compass,
+  Network,
+  HelpCircle,
+  History,
+  MoreVertical
 } from 'lucide-react';
 import { Session } from '../App';
 
@@ -39,13 +39,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   onNewSession,
   collapsed,
   onToggleCollapse,
-  onOpenAgentSpecs,
   isOpenMobile = false,
   onCloseMobile
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Filter sessions by search query
   const filteredSessions = sessions.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -68,162 +66,158 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const sidebarBody = (isMobileMode = false) => (
-    <div className="flex flex-col h-full text-white text-xs select-none">
+    <div className="flex flex-col h-full bg-[#1e1f20] text-[#e3e3e3] text-sm select-none">
       
-      {/* Top Header / Collapse Control */}
-      <div className={`p-4 flex items-center ${!isMobileMode && collapsed ? 'justify-center' : 'justify-between'} border-b border-white/[0.06]`}>
-        {isMobileMode ? (
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
-                <Compass size={16} className="text-indigo-400" />
-              </div>
-              <span className="font-semibold text-white tracking-tight text-sm">Kone AI Navigation</span>
-            </div>
-            <button 
-              onClick={onCloseMobile}
-              className="p-1.5 rounded-lg text-[#94a3b8] hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between w-full">
-            {!collapsed && (
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748b]">
-                Workspace
-              </span>
-            )}
-            <button
-              onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg text-[#94a3b8] hover:text-white hover:bg-white/5 transition-colors"
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              <Menu size={16} />
-            </button>
-          </div>
+      {/* Top Header & Collapse / Close Trigger */}
+      <div className="p-3.5 flex items-center justify-between">
+        <button
+          onClick={isMobileMode ? onCloseMobile : onToggleCollapse}
+          className="p-2 rounded-full text-[#c4c7c5] hover:text-white hover:bg-white/10 transition-colors"
+          title={isMobileMode ? "Close menu" : collapsed ? "Expand menu" : "Collapse menu"}
+        >
+          {isMobileMode ? <X size={20} /> : <Menu size={20} />}
+        </button>
+
+        {isMobileMode && (
+          <span className="font-medium text-sm text-white flex items-center gap-1.5">
+            <Sparkles size={16} className="text-[#a8c7fa]" />
+            <span>Kone AI</span>
+          </span>
         )}
       </div>
 
-      {/* Primary Action Button (+ New Trajectory) */}
-      <div className="p-3">
+      {/* Gemini Pill: + New chat */}
+      <div className="px-3 py-1">
         <button
           onClick={handleCreateNew}
-          className={`w-full py-2 px-3 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold text-xs transition-all flex items-center ${
-            !isMobileMode && collapsed ? 'justify-center p-2' : 'justify-center gap-2'
-          } shadow-sm active:scale-98`}
-          title="Start New Trajectory"
+          className={`w-full py-2.5 rounded-full bg-[#131314] hover:bg-[#282a2c] text-[#e3e3e3] font-medium text-xs md:text-sm transition-all flex items-center border border-white/[0.08] ${
+            !isMobileMode && collapsed ? 'justify-center px-0' : 'px-4 gap-3'
+          }`}
+          title="New chat"
         >
-          <Plus size={15} />
-          {(isMobileMode || !collapsed) && <span>New Trajectory</span>}
+          <Plus size={18} className="text-[#a8c7fa]" />
+          {(isMobileMode || !collapsed) && <span>New chat</span>}
         </button>
       </div>
 
-      {/* Search Input (Linear style) */}
-      {(isMobileMode || !collapsed) && (
-        <div className="px-3 pb-2">
+      {/* Search Input Filter */}
+      {(isMobileMode || !collapsed) && sessions.length > 3 && (
+        <div className="px-3 pt-2">
           <div className="relative flex items-center">
-            <Search size={13} className="absolute left-2.5 text-[#64748b]" />
+            <Search size={14} className="absolute left-3 text-[#8e918f]" />
             <input 
               type="text" 
-              placeholder="Search trajectories..." 
+              placeholder="Search chats..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/[0.03] border border-white/[0.06] focus:border-indigo-500/40 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-[#64748b] outline-none transition-all"
+              className="w-full bg-[#131314]/80 border border-white/[0.06] focus:border-[#8ab4f8] rounded-full pl-9 pr-3 py-1.5 text-xs text-white placeholder:text-[#8e918f] outline-none transition-all"
             />
           </div>
         </div>
       )}
 
-      {/* Main Views Navigation */}
-      <div className="px-3 space-y-0.5 mt-1">
+      {/* Gemini Navigation Views */}
+      <div className="px-3 pt-3 space-y-1">
         <button
           onClick={() => handleSelectView('synthesis')}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-colors font-medium text-left ${
+          className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-full transition-colors text-xs font-medium text-left ${
             activeView === 'synthesis'
-            ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
-            : 'text-[#94a3b8] hover:text-white hover:bg-white/5 border border-transparent'
-          } ${!isMobileMode && collapsed ? 'justify-center px-2' : ''}`}
-          title="AI Pathfinder"
+            ? 'bg-[#282a2c] text-white'
+            : 'text-[#c4c7c5] hover:text-white hover:bg-[#282a2c]/60'
+          } ${!isMobileMode && collapsed ? 'justify-center px-0' : ''}`}
+          title="Gemini Pathfinder"
         >
-          <Compass size={16} className={activeView === 'synthesis' ? 'text-indigo-400' : 'text-[#64748b]'} />
-          {(isMobileMode || !collapsed) && <span>AI Pathfinder</span>}
+          <Sparkles size={16} className={activeView === 'synthesis' ? 'text-[#a8c7fa]' : 'text-[#8e918f]'} />
+          {(isMobileMode || !collapsed) && <span>Gemini Pathfinder</span>}
         </button>
 
         <button
           onClick={() => handleSelectView('knowledge')}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-colors font-medium text-left ${
+          className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-full transition-colors text-xs font-medium text-left ${
             activeView === 'knowledge'
-            ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
-            : 'text-[#94a3b8] hover:text-white hover:bg-white/5 border border-transparent'
-          } ${!isMobileMode && collapsed ? 'justify-center px-2' : ''}`}
+            ? 'bg-[#282a2c] text-white'
+            : 'text-[#c4c7c5] hover:text-white hover:bg-[#282a2c]/60'
+          } ${!isMobileMode && collapsed ? 'justify-center px-0' : ''}`}
           title="Hardware Schematics & Docs"
         >
-          <Cpu size={16} className={activeView === 'knowledge' ? 'text-indigo-400' : 'text-[#64748b]'} />
-          {(isMobileMode || !collapsed) && <span>Hardware Knowledge</span>}
+          <Cpu size={16} className={activeView === 'knowledge' ? 'text-[#a8c7fa]' : 'text-[#8e918f]'} />
+          {(isMobileMode || !collapsed) && <span>Hardware Schematics</span>}
         </button>
       </div>
 
-      {/* Trajectories History Section (Grouped by Date) */}
+      {/* Recent Chats Section */}
       {(isMobileMode || !collapsed) && (
         <div className="mt-4 px-3 flex-1 overflow-y-auto custom-scrollbar">
-          <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#64748b] flex items-center gap-1.5">
-            <History size={12} />
-            <span>Recent Trajectories</span>
+          <div className="px-3 py-1 text-[11px] font-semibold text-[#8e918f] tracking-wide">
+            Recent
           </div>
 
           <div className="space-y-0.5 mt-1">
-            {filteredSessions.map((session) => (
-              <button
-                key={session.id}
-                onClick={() => handleSelectSession(session.id)}
-                className={`w-full text-left truncate px-3 py-2 rounded-xl transition-colors text-xs ${
-                  activeSessionId === session.id && activeView === 'synthesis'
-                  ? 'bg-white/[0.08] text-white font-medium border border-white/[0.08]'
-                  : 'text-[#94a3b8] hover:text-white hover:bg-white/[0.03] border border-transparent'
-                }`}
-                title={session.name}
-              >
-                {session.name}
-              </button>
-            ))}
+            {filteredSessions.map((session) => {
+              const isActive = activeSessionId === session.id && activeView === 'synthesis';
+              return (
+                <div
+                  key={session.id}
+                  onClick={() => handleSelectSession(session.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-full cursor-pointer transition-colors text-xs ${
+                    isActive
+                    ? 'bg-[#282a2c] text-white font-medium'
+                    : 'text-[#c4c7c5] hover:text-white hover:bg-[#282a2c]/60'
+                  }`}
+                  title={session.name}
+                >
+                  <div className="flex items-center gap-2.5 truncate flex-1">
+                    <MessageSquare size={14} className={isActive ? 'text-[#a8c7fa]' : 'text-[#8e918f]'} />
+                    <span className="truncate">{session.name}</span>
+                  </div>
+                </div>
+              );
+            })}
 
             {filteredSessions.length === 0 && (
-              <div className="px-3 py-4 text-center text-xs text-[#64748b]">
-                No matching trajectories
+              <div className="px-3 py-4 text-center text-xs text-[#8e918f]">
+                No recent chats
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Bottom Footer Section: Sitemap & Settings */}
-      <div className="p-3 mt-auto border-t border-white/[0.06] space-y-0.5">
+      {/* Bottom Footer Section: Gemini Pro / Settings / Location */}
+      <div className="p-3 mt-auto border-t border-white/[0.06] space-y-1">
         <button
-          onClick={() => handleSelectView('sitemap')}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-colors font-medium text-left ${
-            activeView === 'sitemap'
-            ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
-            : 'text-[#94a3b8] hover:text-white hover:bg-white/5 border border-transparent'
-          } ${!isMobileMode && collapsed ? 'justify-center px-2' : ''}`}
-          title="Academy Network Sitemap"
+          onClick={() => handleSelectView('settings')}
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-full transition-colors text-xs font-medium text-left ${
+            activeView === 'settings'
+            ? 'bg-[#282a2c] text-white'
+            : 'text-[#c4c7c5] hover:text-white hover:bg-[#282a2c]/60'
+          } ${!isMobileMode && collapsed ? 'justify-center px-0' : ''}`}
+          title="Settings"
         >
-          <Network size={16} className={activeView === 'sitemap' ? 'text-indigo-400' : 'text-[#64748b]'} />
-          {(isMobileMode || !collapsed) && <span>Academy Sitemap</span>}
+          <Settings size={16} className={activeView === 'settings' ? 'text-[#a8c7fa]' : 'text-[#8e918f]'} />
+          {(isMobileMode || !collapsed) && <span>Settings</span>}
         </button>
 
         <button
-          onClick={() => handleSelectView('settings')}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-colors font-medium text-left ${
-            activeView === 'settings'
-            ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
-            : 'text-[#94a3b8] hover:text-white hover:bg-white/5 border border-transparent'
-          } ${!isMobileMode && collapsed ? 'justify-center px-2' : ''}`}
-          title="Lab Settings"
+          onClick={() => handleSelectView('sitemap')}
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-full transition-colors text-xs font-medium text-left ${
+            activeView === 'sitemap'
+            ? 'bg-[#282a2c] text-white'
+            : 'text-[#c4c7c5] hover:text-white hover:bg-[#282a2c]/60'
+          } ${!isMobileMode && collapsed ? 'justify-center px-0' : ''}`}
+          title="Academy Sitemap"
         >
-          <Settings size={16} className={activeView === 'settings' ? 'text-indigo-400' : 'text-[#64748b]'} />
-          {(isMobileMode || !collapsed) && <span>Lab Settings</span>}
+          <Network size={16} className={activeView === 'sitemap' ? 'text-[#a8c7fa]' : 'text-[#8e918f]'} />
+          {(isMobileMode || !collapsed) && <span>Academy Sitemap</span>}
         </button>
+
+        {/* Gemini Location Stamp */}
+        {(isMobileMode || !collapsed) && (
+          <div className="pt-2 px-3 text-[11px] text-[#8e918f] flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>Kone Academy · Gemini 2.0 Flash</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -231,7 +225,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className={`h-screen bg-[#0d0e14] hidden md:flex flex-col border-r border-white/[0.06] overflow-y-auto transition-all duration-300 ${
+      <aside className={`h-screen bg-[#1e1f20] hidden md:flex flex-col border-r border-white/[0.06] overflow-y-auto transition-all duration-250 ${
         collapsed ? 'w-[68px]' : 'w-[260px]'
       }`}>
         {sidebarBody(false)}
@@ -244,7 +238,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
             onClick={onCloseMobile}
           />
-          <div className="relative w-[280px] max-w-[85vw] h-full bg-[#0d0e14] border-r border-white/10 shadow-2xl z-10 animate-in slide-in-from-left duration-300 overflow-y-auto">
+          <div className="relative w-[280px] max-w-[85vw] h-full bg-[#1e1f20] border-r border-white/10 shadow-2xl z-10 animate-in slide-in-from-left duration-250 overflow-y-auto">
             {sidebarBody(true)}
           </div>
         </div>
@@ -254,4 +248,5 @@ const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export default Sidebar;
+
 

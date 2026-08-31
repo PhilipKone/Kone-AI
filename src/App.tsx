@@ -19,7 +19,8 @@ import {
   Share2,
   ExternalLink,
   Shield,
-  Layers
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -702,15 +703,15 @@ class PIDController:
   }
 
   return (
-    <div className="flex h-screen w-full bg-[#090a0f] overflow-hidden text-white font-sans">
+    <div className="flex h-screen w-full bg-[#131314] overflow-hidden text-[#e3e3e3] font-sans">
       
       {/* Toast Alert */}
       {toast && (
-        <div className="fixed top-6 right-6 z-50 mobbin-glass rounded-xl p-3.5 shadow-2xl animate-in fade-in slide-in-from-top-3 duration-200 flex items-center gap-3">
+        <div className="fixed top-6 right-6 z-50 bg-[#1e1f20] border border-white/[0.08] rounded-2xl p-3.5 shadow-2xl animate-in fade-in slide-in-from-top-3 duration-200 flex items-center gap-3">
           <div className={`w-2 h-2 rounded-full ${
             toast.type === 'success' ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 
             toast.type === 'warning' ? 'bg-amber-400 shadow-[0_0_8px_#fbbf24]' : 
-            'bg-indigo-400 shadow-[0_0_8px_#818cf8]'
+            'bg-[#8ab4f8] shadow-[0_0_8px_#8ab4f8]'
           }`} />
           <span className="text-xs font-medium text-white">{toast.message}</span>
         </div>
@@ -732,46 +733,50 @@ class PIDController:
       />
       
       {/* Main Content Stage */}
-      <div className="flex-1 flex flex-col h-full relative overflow-hidden">
+      <div className="flex-1 flex flex-col h-full relative overflow-hidden bg-[#131314]">
         
-        {/* Modern Minimal Workspace Header */}
-        <header className="h-14 px-4 md:px-6 flex items-center justify-between border-b border-white/[0.06] bg-[#090a0f]/80 backdrop-blur-xl z-20">
+        {/* Gemini Minimal Top Header */}
+        <header className="h-14 px-4 md:px-6 flex items-center justify-between border-b border-white/[0.05] bg-[#131314]/80 backdrop-blur-xl z-20">
           <div className="flex items-center gap-3">
             {/* Mobile Hamburger Drawer Trigger */}
             <button
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open mobile navigation menu"
-              className="p-1.5 rounded-lg text-[#94a3b8] hover:text-white hover:bg-white/5 transition-colors md:hidden border border-white/[0.08]"
+              className="p-2 rounded-full text-[#c4c7c5] hover:text-white hover:bg-white/10 transition-colors md:hidden"
             >
-              <Menu size={16} />
+              <Menu size={18} />
             </button>
 
-            {/* Breadcrumb Navigation */}
-            <div className="flex items-center gap-2 text-xs">
-              <span className="font-semibold text-white/90">Kone Academy</span>
-              <span className="text-[#64748b]">/</span>
-              <span className="text-indigo-400 font-medium capitalize">
-                {activeView === 'synthesis' ? 'AI Pathfinder' : activeView === 'knowledge' ? 'Hardware Schematics' : 'Lab Settings'}
+            {/* Gemini Brand & Breadcrumb */}
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <span className="gemini-gradient-text font-bold text-base tracking-tight">Kone Gemini</span>
+              <span className="text-[#8e918f]">/</span>
+              <span className="text-[#c4c7c5] text-xs capitalize">
+                {activeView === 'synthesis' ? 'AI Pathfinder' : activeView === 'knowledge' ? 'Hardware Schematics' : 'Settings'}
               </span>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Gemini 2.0 Flash Active</span>
+          <div className="flex items-center gap-2.5">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-[#a8c7fa] px-3 py-1 rounded-full bg-[#1e1f20] border border-white/[0.06]">
+              <Sparkles size={13} className="text-[#a8c7fa]" />
+              <span>Gemini 2.0 Flash</span>
             </span>
 
             <button 
               onClick={handleNewSession}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/[0.08] text-xs font-medium text-white transition-colors"
+              className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] border border-white/[0.08] text-xs font-medium text-[#e3e3e3] transition-colors"
             >
-              <span>+ New Trajectory</span>
+              <span>+ New chat</span>
             </button>
+
+            <div className="w-8 h-8 rounded-full bg-[#282a2c] border border-white/[0.08] flex items-center justify-center text-xs font-semibold text-[#a8c7fa] ml-1">
+              P
+            </div>
           </div>
         </header>
 
-        {/* Main Canvas Canvas */}
+        {/* Main Workspace Stage */}
         <main className="flex-1 overflow-y-auto flex justify-center w-full relative custom-scrollbar">
           <div className="w-full max-w-4xl px-4 md:px-8 py-6 relative z-0">
             {renderContent()}
