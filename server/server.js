@@ -236,7 +236,7 @@ app.post('/api/telemetry/toggle', (req, res) => {
 
 // 6. Multi-Engine Synthesizer Endpoint
 app.post('/api/synthesize', async (req, res) => {
-  const { query, provider = 'gemini-flash', temperature, maxTokens } = req.body;
+  const { query, history = [], provider = 'gemini-flash', temperature, maxTokens } = req.body;
 
   if (!query || typeof query !== 'string' || !query.trim()) {
     return res.status(400).json({ error: 'Query is required and must be a non-empty string.' });
@@ -244,6 +244,14 @@ app.post('/api/synthesize', async (req, res) => {
 
   const effectiveTemperature = typeof temperature === 'number' ? temperature : serverSettings.temperature;
   const effectiveMaxTokens = typeof maxTokens === 'number' ? maxTokens : serverSettings.maxTokens;
+
+  // Format past turns for conversational multi-turn context
+  const formattedHistory = Array.isArray(history) 
+    ? history.slice(-6).map(h => ({
+        role: h.role === 'ai' || h.role === 'assistant' ? 'assistant' : 'user',
+        content: typeof h.content === 'string' ? h.content : JSON.stringify(h.content)
+      }))
+    : [];
 
   // ── Route by Provider ──────────────────────────────
 
@@ -256,12 +264,15 @@ app.post('/api/synthesize', async (req, res) => {
 
     try {
       const modelName = provider === 'gpt-4o-mini' || provider === 'openai-flash' ? 'gpt-4o-mini' : 'gpt-4o';
+      const messages = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...formattedHistory,
+        { role: 'user', content: query }
+      ];
+
       const response = await openai.chat.completions.create({
         model: modelName,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: query }
-        ],
+        messages,
         temperature: effectiveTemperature,
         max_tokens: effectiveMaxTokens,
         response_format: { type: 'json_object' }
@@ -284,12 +295,15 @@ app.post('/api/synthesize', async (req, res) => {
     }
 
     try {
+      const messages = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...formattedHistory,
+        { role: 'user', content: query }
+      ];
+
       const response = await deepseek.chat.completions.create({
         model: 'deepseek-reasoner',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: query }
-        ],
+        messages,
         temperature: effectiveTemperature,
         max_tokens: effectiveMaxTokens
       });
@@ -305,7 +319,6 @@ app.post('/api/synthesize', async (req, res) => {
 
   // Provider C: Claude (Anthropic / Sonnet)
   if (provider === 'claude-sonnet') {
-    // If Anthropic key or fallback is needed
     if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'your_anthropic_api_key_here') {
       console.warn('Claude API key not set, using smart educational fallback.');
       return res.json(createFallbackPayload(query, 'Claude 3.7 Sonnet'));
@@ -318,6 +331,13 @@ app.post('/api/synthesize', async (req, res) => {
       const modelCandidates = provider === 'gemini-pro' 
         ? ['gemini-2.5-pro', 'gemini-1.5-pro'] 
         : ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+
+      // Convert formattedHistory to Gemini contents format
+      const geminiContents = formattedHistory.map(h => ({
+        role: h.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: h.content }]
+      }));
+      geminiContents.push({ role: 'user', parts: [{ text: query }] });
 
       let responseText = null;
       let lastErr = null;
@@ -334,7 +354,7 @@ app.post('/api/synthesize', async (req, res) => {
           });
 
           const result = await model.generateContent({
-            contents: [{ role: 'user', parts: [{ text: query }] }],
+            contents: geminiContents,
             systemInstruction: SYSTEM_PROMPT
           });
 
@@ -342,7 +362,6 @@ app.post('/api/synthesize', async (req, res) => {
           if (responseText) break;
         } catch (err) {
           lastErr = err;
-          // try next model in cascade
         }
       }
 

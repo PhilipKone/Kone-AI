@@ -166,6 +166,10 @@ function App() {
     try {
       const response = await axios.post(`${API_URL}/api/synthesize`, {
         query: text,
+        history: activeSession.messages.map(m => ({
+          role: m.role === 'ai' ? 'assistant' : 'user',
+          content: m.content
+        })),
         provider,
         temperature: parameters.temperature,
         maxTokens: parameters.maxTokens

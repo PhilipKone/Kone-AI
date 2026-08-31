@@ -62,6 +62,11 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
   const [showProviderMenu, setShowProviderMenu] = useState<boolean>(false);
   const [showParameters, setShowParameters] = useState<boolean>(false);
   const [dbStatus, setDbStatus] = useState<DBStatus>('online');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [session.messages, isAnalyzing]);
 
   const providers: ProviderItem[] = [
     { id: 'gemini-flash', name: 'Gemini 2.0 Flash', icon: <Sparkles size={14} className="text-amber-400" />, desc: 'Fast multimodal reasoning', tag: 'Fast' },
@@ -230,7 +235,7 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                     <p>{msg.content}</p>
                   </div>
 
-                  {/* Linear-Style Synthesized Roadmap Cards */}
+                    {/* Linear-Style Synthesized Roadmap Cards */}
                   {msg.roadmap && msg.roadmap.length > 0 && (
                     <div className="pt-2 space-y-3">
                       <div className="flex items-center justify-between">
@@ -264,15 +269,35 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
                             </div>
 
                             <button 
-                              onClick={() => onShowToast(`Module activated: ${item.name}`, "info")}
-                              className="w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white/90 transition-all flex items-center justify-center gap-1.5"
+                              onClick={() => handleGenerate(`Provide detailed code and step-by-step guidance for Stage 0${i+1}: ${item.name}`)}
+                              className="w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white/90 transition-all flex items-center justify-center gap-1.5 group cursor-pointer"
                             >
                               <span>Explore Stage</span>
-                              <ArrowRight size={12} />
+                              <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
                             </button>
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Follow-up Question Chips (Perplexity / ChatGPT style) */}
+                  {idx === session.messages.length - 1 && !isAnalyzing && (
+                    <div className="pt-3 flex flex-wrap items-center gap-2 animate-in fade-in duration-300">
+                      <span className="text-[11px] text-[#64748b] font-medium mr-1">Suggested Next Steps:</span>
+                      {[
+                        "⚡ Show full C++ Arduino code routine",
+                        "🔌 Show circuit wiring & pinout table",
+                        "🧪 How do I test and debug this with hardware?"
+                      ].map((promptText, pIdx) => (
+                        <button
+                          key={pIdx}
+                          onClick={() => handleGenerate(promptText)}
+                          className="text-[11px] font-medium text-[#94a3b8] hover:text-white bg-white/5 hover:bg-white/10 border border-white/[0.08] hover:border-indigo-500/30 px-3 py-1.5 rounded-full transition-all cursor-pointer active:scale-98"
+                        >
+                          {promptText}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -294,6 +319,8 @@ const MissionSimulator: React.FC<MissionSimulatorProps> = ({
             </div>
           </div>
         )}
+
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Floating Mobbin-Grade Command Dock (Linear / Perplexity Style) */}
