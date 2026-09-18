@@ -8,24 +8,22 @@ import {
   X,
   Sparkles,
   Cpu,
-  Compass,
   Network,
-  HelpCircle,
-  History,
-  MoreVertical
+  Trash2,
+  Bot
 } from 'lucide-react';
-import { Session } from '../App';
+import { ChatSession } from '../types';
 
 interface SidebarProps {
   activeView: string;
   onViewChange: (view: string) => void;
-  sessions: Session[];
+  sessions: ChatSession[];
   activeSessionId: string;
   onSessionSelect: (id: string) => void;
   onNewSession: () => void;
+  onDeleteSession: (id: string) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
-  onOpenAgentSpecs: () => void;
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
 }
@@ -37,6 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   activeSessionId, 
   onSessionSelect, 
   onNewSession,
+  onDeleteSession,
   collapsed,
   onToggleCollapse,
   isOpenMobile = false,
@@ -45,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const filteredSessions = sessions.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase())
+    s.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSelectView = (view: string) => {
@@ -55,14 +54,19 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleSelectSession = (id: string) => {
     onSessionSelect(id);
-    onViewChange('synthesis');
+    onViewChange('chat');
     if (onCloseMobile) onCloseMobile();
   };
 
   const handleCreateNew = () => {
     onNewSession();
-    onViewChange('synthesis');
+    onViewChange('chat');
     if (onCloseMobile) onCloseMobile();
+  };
+
+  const handleDeleteSession = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    onDeleteSession(id);
   };
 
   const sidebarBody = (isMobileMode = false) => (
@@ -78,19 +82,24 @@ const Sidebar: React.FC<SidebarProps> = ({
           {isMobileMode ? <X size={20} /> : <Menu size={20} />}
         </button>
 
-        {isMobileMode && (
-          <span className="font-medium text-sm text-white flex items-center gap-1.5">
-            <Sparkles size={16} className="text-[#a8c7fa]" />
-            <span>Kone AI</span>
-          </span>
+        {(isMobileMode || !collapsed) && (
+          <div className="flex items-center gap-2 pr-2">
+            <span className="font-semibold text-sm text-white flex items-center gap-1.5">
+              <Bot size={18} className="text-[#a8c7fa]" />
+              <span>Kone AI</span>
+            </span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#a8c7fa]/10 text-[#a8c7fa] font-mono">
+              Chatbot
+            </span>
+          </div>
         )}
       </div>
 
-      {/* Gemini Pill: + New chat */}
-      <div className="px-3 py-1">
+      {/* New chat button */}
+      <div className="px-3 py-1.5">
         <button
           onClick={handleCreateNew}
-          className={`w-full py-2.5 rounded-full bg-[#131314] hover:bg-[#282a2c] text-[#e3e3e3] font-medium text-xs md:text-sm transition-all flex items-center border border-white/[0.08] ${
+          className={`w-full py-2.5 rounded-full bg-[#131314] hover:bg-[#282a2c] text-[#e3e3e3] font-medium text-xs md:text-sm transition-all flex items-center border border-white/[0.08] shadow-sm ${
             !isMobileMode && collapsed ? 'justify-center px-0' : 'px-4 gap-3'
           }`}
           title="New chat"
@@ -101,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Search Input Filter */}
-      {(isMobileMode || !collapsed) && sessions.length > 3 && (
+      {(isMobileMode || !collapsed) && sessions.length > 2 && (
         <div className="px-3 pt-2">
           <div className="relative flex items-center">
             <Search size={14} className="absolute left-3 text-[#8e918f]" />
@@ -116,19 +125,19 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
 
-      {/* Gemini Navigation Views */}
+      {/* Navigation Views */}
       <div className="px-3 pt-3 space-y-1">
         <button
-          onClick={() => handleSelectView('synthesis')}
+          onClick={() => handleSelectView('chat')}
           className={`w-full flex items-center gap-3 px-3.5 py-2 rounded-full transition-colors text-xs font-medium text-left ${
-            activeView === 'synthesis'
-            ? 'bg-[#282a2c] text-white'
+            activeView === 'chat'
+            ? 'bg-[#282a2c] text-white font-semibold'
             : 'text-[#c4c7c5] hover:text-white hover:bg-[#282a2c]/60'
           } ${!isMobileMode && collapsed ? 'justify-center px-0' : ''}`}
-          title="Gemini Pathfinder"
+          title="AI Assistant"
         >
-          <Sparkles size={16} className={activeView === 'synthesis' ? 'text-[#a8c7fa]' : 'text-[#8e918f]'} />
-          {(isMobileMode || !collapsed) && <span>Gemini Pathfinder</span>}
+          <Sparkles size={16} className={activeView === 'chat' ? 'text-[#a8c7fa]' : 'text-[#8e918f]'} />
+          {(isMobileMode || !collapsed) && <span>AI Chatbot</span>}
         </button>
 
         <button
@@ -141,49 +150,61 @@ const Sidebar: React.FC<SidebarProps> = ({
           title="Hardware Schematics & Docs"
         >
           <Cpu size={16} className={activeView === 'knowledge' ? 'text-[#a8c7fa]' : 'text-[#8e918f]'} />
-          {(isMobileMode || !collapsed) && <span>Hardware Schematics</span>}
+          {(isMobileMode || !collapsed) && <span>Hardware Docs</span>}
         </button>
       </div>
 
       {/* Recent Chats Section */}
       {(isMobileMode || !collapsed) && (
         <div className="mt-4 px-3 flex-1 overflow-y-auto custom-scrollbar">
-          <div className="px-3 py-1 text-[11px] font-semibold text-[#8e918f] tracking-wide">
-            Recent
+          <div className="px-3 py-1 text-[11px] font-semibold text-[#8e918f] tracking-wide flex items-center justify-between">
+            <span>Recent Chats</span>
+            <span className="text-[10px] text-[#8e918f]/70">{sessions.length}</span>
           </div>
 
           <div className="space-y-0.5 mt-1">
             {filteredSessions.map((session) => {
-              const isActive = activeSessionId === session.id && activeView === 'synthesis';
+              const isActive = activeSessionId === session.id && activeView === 'chat';
               return (
                 <div
                   key={session.id}
                   onClick={() => handleSelectSession(session.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-full cursor-pointer transition-colors text-xs ${
+                  className={`group w-full flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors text-xs ${
                     isActive
                     ? 'bg-[#282a2c] text-white font-medium'
                     : 'text-[#c4c7c5] hover:text-white hover:bg-[#282a2c]/60'
                   }`}
-                  title={session.name}
+                  title={session.title}
                 >
-                  <div className="flex items-center gap-2.5 truncate flex-1">
-                    <MessageSquare size={14} className={isActive ? 'text-[#a8c7fa]' : 'text-[#8e918f]'} />
-                    <span className="truncate">{session.name}</span>
+                  <div className="flex items-center gap-2.5 truncate flex-1 min-w-0">
+                    <MessageSquare size={14} className={isActive ? 'text-[#a8c7fa] shrink-0' : 'text-[#8e918f] shrink-0'} />
+                    <span className="truncate">{session.title}</span>
                   </div>
+
+                  {/* Delete Session Button */}
+                  {sessions.length > 1 && (
+                    <button
+                      onClick={(e) => handleDeleteSession(e, session.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 text-[#8e918f] transition-opacity shrink-0 rounded"
+                      title="Delete chat"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
                 </div>
               );
             })}
 
             {filteredSessions.length === 0 && (
               <div className="px-3 py-4 text-center text-xs text-[#8e918f]">
-                No recent chats
+                No chats found
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Bottom Footer Section: Gemini Pro / Settings / Location */}
+      {/* Bottom Footer Section */}
       <div className="p-3 mt-auto border-t border-white/[0.06] space-y-1">
         <button
           onClick={() => handleSelectView('settings')}
@@ -211,11 +232,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           {(isMobileMode || !collapsed) && <span>Academy Sitemap</span>}
         </button>
 
-        {/* Gemini Location Stamp */}
+        {/* Location / Status Stamp */}
         {(isMobileMode || !collapsed) && (
           <div className="pt-2 px-3 text-[11px] text-[#8e918f] flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span>Kone Academy · Gemini 2.0 Flash</span>
+            <span>Kone Code Academy · AI Engine</span>
           </div>
         )}
       </div>
@@ -248,5 +269,3 @@ const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export default Sidebar;
-
-
