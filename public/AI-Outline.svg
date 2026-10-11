@@ -1,0 +1,11 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M 100 40 C 100 40 140 85 140 125 C 140 147 122 165 100 165 C 78 165 60 147 60 125 C 60 85 100 40 100 40 Z" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <!-- Neural Core (Outline Variant) -->
+  <circle cx="100" cy="120" r="12" stroke="white" stroke-width="3" fill="none" />
+  <circle cx="100" cy="90" r="4" stroke="white" stroke-width="2" fill="none" />
+  <circle cx="125" cy="135" r="4" stroke="white" stroke-width="2" fill="none" />
+  <circle cx="75" cy="135" r="4" stroke="white" stroke-width="2" fill="none" />
+  <path d="M 100 108 L 100 94" stroke="white" stroke-width="2.5" stroke-linecap="round" />
+  <path d="M 110 126 L 121 131" stroke="white" stroke-width="2.5" stroke-linecap="round" />
+  <path d="M 90 126 L 79 131" stroke="white" stroke-width="2.5" stroke-linecap="round" />
+</svg>

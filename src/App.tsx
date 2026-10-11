@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import Sitemap from './components/Sitemap';
 import MarkdownMessage from './components/MarkdownMessage';
+import KoneAILogo from './components/KoneAILogo';
 import { 
   Menu, 
   Settings, 
@@ -33,6 +34,7 @@ import {
   ChatSession, 
   ModelProvider, 
   ModelOption, 
+  SubdomainScope,
   AISettings 
 } from './types';
 
@@ -43,73 +45,117 @@ export type AIParameters = AISettings;
 
 const MODEL_OPTIONS: ModelOption[] = [
   {
-    id: 'gemini-flash',
-    name: 'Gemini 2.5 Flash',
-    badge: 'Recommended',
-    description: 'High-speed reasoning & code generation',
+    id: 'gemini-3.8-flash',
+    name: 'Gemini 3.8 Flash',
+    badge: 'Latest · Ultra-Fast',
+    description: 'DeepMind flagship high-speed reasoning and synthesis engine',
     speed: 'Ultra-Fast'
   },
   {
-    id: 'gemini-pro',
-    name: 'Gemini 2.5 Pro',
-    badge: 'Advanced',
-    description: 'Deep multidisciplinary problem solving',
+    id: 'gemini-3.1-pro',
+    name: 'Gemini 3.1 Pro',
+    badge: 'Deep Reasoning',
+    description: 'Advanced multi-domain engineering & code intelligence',
     speed: 'Reasoning'
   },
   {
     id: 'gpt-4o-mini',
     name: 'GPT-4o Mini',
     badge: 'OpenAI',
-    description: 'Lightweight, rapid response model',
+    description: 'Lightweight rapid response conversational model',
     speed: 'Fast'
   },
   {
     id: 'gpt-4o',
     name: 'GPT-4o',
     badge: 'OpenAI Pro',
-    description: 'Flagship multimodal intelligence',
+    description: 'Flagship multimodal intelligence & code generation',
     speed: 'Reasoning'
   },
   {
     id: 'deepseek-r1',
     name: 'DeepSeek R1',
-    badge: 'Reasoning',
-    description: 'Open-weights mathematical logic engine',
+    badge: 'Open Reasoning',
+    description: 'Open-weights mathematical logic & algorithm engine',
     speed: 'Reasoning'
   }
 ];
 
-const SUGGESTED_PROMPTS = [
-  {
-    icon: '⚡',
-    title: 'Arduino PWM Control',
-    prompt: 'Explain how 8-bit PWM speed control works on an Arduino Uno with an L298N motor driver, including code.'
-  },
-  {
-    icon: '🤖',
-    title: 'Autonomous State Machine',
-    prompt: 'How do I design a clean state machine in C++ for an obstacle-avoiding mobile robot with ultrasonic sensors?'
-  },
-  {
-    icon: '🐍',
-    title: 'Python Data Scaffolding',
-    prompt: 'Write a clean, idiomatic Python function to process and normalize telemetry sensor data from a serial port.'
-  },
-  {
-    icon: '🔬',
-    title: 'ESP32 vs Arduino',
-    prompt: 'What are the architectural differences between an ESP32 and Arduino Uno for IoT and robotics projects?'
-  }
+export const SUBDOMAIN_SCOPES: SubdomainScope[] = [
+  { id: 'all', name: 'All Ecosystem', icon: '🌐', url: 'https://koneacademy.io', tagline: 'Unified Academy Intelligence' },
+  { id: 'kids', name: 'Kone Kids', icon: '👶', url: 'https://kids.koneacademy.io', tagline: 'STEM & Robotics for Ages 6-16' },
+  { id: 'code', name: 'Kone Code', icon: '💻', url: 'https://code.koneacademy.io', tagline: 'Software Engineering & Tracks' },
+  { id: 'consult', name: 'Kone Consult', icon: '💼', url: 'https://consult.koneacademy.io', tagline: 'Enterprise AI & Architecture' },
+  { id: 'digital', name: 'Kone Digital', icon: '🎨', url: 'https://digital.koneacademy.io', tagline: 'UI/UX & Product Design' },
+  { id: 'lab', name: 'Kone Lab', icon: '🔬', url: 'https://lab.koneacademy.io', tagline: 'Hardware R&D & Embedded Systems' },
+  { id: 'shop', name: 'Kone Shop', icon: '🛒', url: 'https://shop.koneacademy.io', tagline: 'Robotics Kits & Components' },
+  { id: 'farms', name: 'Kone Farms', icon: '🌾', url: 'https://farms.koneacademy.io', tagline: 'AgriTech & Smart Irrigation' },
+  { id: 'warp', name: 'Kone Warp', icon: '⚡', url: 'https://warp.koneacademy.io', tagline: 'Cloud Sandboxes & Fast Tooling' }
 ];
+
+export const PROMPTS_BY_SUBDOMAIN: Record<string, Array<{ icon: string; title: string; prompt: string }>> = {
+  all: [
+    { icon: '🌐', title: 'Academy Ecosystem Overview', prompt: 'Give me an overview of all divisions in the Kone Academy ecosystem and how they connect.' },
+    { icon: '👶', title: 'Kids Robotics Programs', prompt: 'What robotics and coding programs does Kone Kids offer for beginners?' },
+    { icon: '💻', title: 'Full-Stack Software Track', prompt: 'What is the recommended software engineering roadmap on Kone Code?' },
+    { icon: '🛒', title: 'Shop Hardware Kits', prompt: 'What educational robotics kits and microcontroller packs are available in the Kone Shop?' }
+  ],
+  kids: [
+    { icon: '🤖', title: 'Robotics for Age 8-12', prompt: 'What hands-on robotics courses and projects are available on kids.koneacademy.io for ages 8-12?' },
+    { icon: '🎮', title: 'Scratch to Python Path', prompt: 'How does Kone Kids transition young learners from block programming to text-based Python?' },
+    { icon: '🚗', title: 'Obstacle-Avoidance Rover', prompt: 'Explain the obstacle-avoidance robot car project taught in the Kone Kids robotics curriculum.' },
+    { icon: '🧠', title: 'AI for Kids Basics', prompt: 'How does Kone Kids teach artificial intelligence and computer vision to young students?' }
+  ],
+  code: [
+    { icon: '⚡', title: 'TypeScript & React Roadmap', prompt: 'What is the full-stack TypeScript and React curriculum roadmap on code.koneacademy.io?' },
+    { icon: '🏗️', title: 'Backend APIs & Systems', prompt: 'How does Kone Code teach backend REST/GraphQL microservices architecture?' },
+    { icon: '🎯', title: 'Technical Interview Prep', prompt: 'Can you give me an algorithm practice problem from the Kone Code interview curriculum?' },
+    { icon: '🐳', title: 'Docker & CI/CD Mastery', prompt: 'Explain the containerization and automated deployment pipeline modules on Kone Code.' }
+  ],
+  consult: [
+    { icon: '💼', title: 'Enterprise AI Advisory', prompt: 'What custom generative AI and LLM consulting services does consult.koneacademy.io provide?' },
+    { icon: '☁️', title: 'Cloud Architecture Modernization', prompt: 'How does Kone Consult handle enterprise cloud migrations and digital transformation?' },
+    { icon: '🛡️', title: 'IoT Architecture Audits', prompt: 'What does a security and scalability audit for industrial IoT look like at Kone Consult?' },
+    { icon: '📊', title: 'Data Strategy & Pipelines', prompt: 'How does Kone Consult design real-time data streaming architectures for enterprises?' }
+  ],
+  digital: [
+    { icon: '🎨', title: 'UI/UX Design Process', prompt: 'What is the product design and user journey methodology used by digital.koneacademy.io?' },
+    { icon: '✨', title: 'Design Systems & Tokens', prompt: 'How does Kone Digital construct scalable Figma design systems and frontend tokens?' },
+    { icon: '📱', title: 'Responsive Mobile Experience', prompt: 'What are the principles Kone Digital uses for high-conversion responsive web interfaces?' },
+    { icon: '🚀', title: 'Brand Identity Design', prompt: 'What brand identity deliverables does Kone Digital produce for tech startups?' }
+  ],
+  lab: [
+    { icon: '🔬', title: 'ESP32 Real-Time Telemetry', prompt: 'How do I build an asynchronous sensor telemetry loop on an ESP32 in Kone Lab?' },
+    { icon: '🏎️', title: 'PID Trajectory Steering', prompt: 'Explain the mathematical PID steering logic used for mobile robots in Kone Lab.' },
+    { icon: '📡', title: 'LoRa & ESP-NOW Mesh', prompt: 'How does Kone Lab implement off-grid RF sensor communication using ESP-NOW?' },
+    { icon: '🔌', title: 'Custom PCB Schematic Review', prompt: 'What design rules are required for custom motor driver PCB layouts in Kone Lab?' }
+  ],
+  shop: [
+    { icon: '📦', title: 'Kone Robotics Starter Kit', prompt: 'What components and documentation are included in the Kone Robotics Starter Kit on shop.koneacademy.io?' },
+    { icon: '🎛️', title: 'Sensor Packs & Shields', prompt: 'Which sensor expansion packs and microcontroller shields are available in the Kone Shop?' },
+    { icon: '🔋', title: 'Power & Battery Safety', prompt: 'What 18650 LiPo battery holders with BMS protection are sold in the Kone Shop?' },
+    { icon: '🚚', title: 'Ordering & School Bundles', prompt: 'How do schools and clubs purchase bulk classroom kits from the Kone Shop?' }
+  ],
+  farms: [
+    { icon: '🌱', title: 'Smart Irrigation Telemetry', prompt: 'How does farms.koneacademy.io monitor soil moisture and automate irrigation valves?' },
+    { icon: '☀️', title: 'Solar Powered Off-Grid IoT', prompt: 'Explain the solar power management and battery telemetry used by Kone Farms.' }
+  ],
+  warp: [
+    { icon: '⚡', title: 'Virtual Hardware Simulator', prompt: 'Can I simulate Arduino and ESP32 code on warp.koneacademy.io without physical hardware?' },
+    { icon: '🚀', title: 'Instant Cloud Compilers', prompt: 'How does Kone Warp run zero-configuration browser code sandboxes for students?' }
+  ]
+};
+
+export const SUGGESTED_PROMPTS = PROMPTS_BY_SUBDOMAIN['all'];
 
 /* ── Default Initial Session ──────────────────────────── */
 
 const INITIAL_WELCOME_MESSAGE: ChatMessage = {
   id: 'msg-welcome',
   role: 'assistant',
-  content: `### Welcome to Kone AI! 👋\n\nI am your intelligent educational assistant for **Kone Code Academy**.\n\nI can help you with:\n- **Programming & Web Dev:** Python, TypeScript, React, Node.js, C++\n- **Robotics & Embedded Hardware:** Arduino, ESP32, Raspberry Pi, sensor telemetry, and motor control\n- **AI & Algorithms:** State machines, neural nets, and algorithmic problem-solving\n\nHow can I help you learn or build today? Feel free to ask a question or pick one of the suggestions below!`,
+  content: `### Welcome to Kone AI! 👋\n\nI am your intelligent educational assistant fine-tuned on the **Kone Academy Ecosystem**.\n\nI have complete knowledge across our academy subdomains:\n- **Kone Kids (kids.koneacademy.io):** STEM, robotics, and creative coding for ages 6–16\n- **Kone Code (code.koneacademy.io):** Professional software engineering, React, TypeScript, and full-stack tracks\n- **Kone Consult (consult.koneacademy.io):** Enterprise AI deployment, architecture audits, and digital transformation\n- **Kone Digital (digital.koneacademy.io):** UI/UX product design, branding, and creative interactive web\n- **Kone Lab (lab.koneacademy.io):** Hardware R&D, embedded firmware, IoT sensor telemetry, and PID control\n- **Kone Shop (shop.koneacademy.io):** Educational robotics kits, microcontroller boards, and electronics\n- **Kone Farms & Kone Warp:** Smart agriculture and instant browser sandboxes\n\nSelect any subdomain above to focus your inquiries, or ask me anything directly!`,
   timestamp: Date.now(),
-  provider: 'Gemini 2.5 Flash'
+  provider: 'Gemini 3.8 Flash'
 };
 
 const DEFAULT_SESSION: ChatSession = {
@@ -134,8 +180,9 @@ function App() {
   const [modelDropdownOpen, setModelDropdownOpen] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'warning' } | null>(null);
 
-  // Model Provider Selection
-  const [activeProvider, setActiveProvider] = useState<ModelProvider>('gemini-flash');
+  // Model Provider Selection & Active Subdomain Scope
+  const [activeProvider, setActiveProvider] = useState<ModelProvider>('gemini-3.8-flash');
+  const [activeSubdomain, setActiveSubdomain] = useState<string>('all');
 
   // Chat Sessions State (Persisted in localStorage)
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
@@ -155,11 +202,28 @@ function App() {
     return sessions[0]?.id || DEFAULT_SESSION.id;
   });
 
-  // AI Parameters State
-  const [parameters, setParameters] = useState<AISettings>({
-    temperature: 0.7,
-    maxTokens: 2048,
-    systemPrompt: "You are Kone AI, an advanced, friendly, and knowledgeable educational AI assistant for Kone Code Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful."
+  // AI Parameters State (Persisted in localStorage)
+  const [parameters, setParameters] = useState<AISettings>(() => {
+    try {
+      const saved = localStorage.getItem('kone_ai_parameters');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          temperature: parsed.temperature ?? 0.7,
+          maxTokens: parsed.maxTokens ?? 2048,
+          systemPrompt: parsed.systemPrompt || "You are Kone AI, an advanced, friendly, and knowledgeable educational AI assistant for Kone Code Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
+          geminiApiKey: parsed.geminiApiKey || localStorage.getItem('kone_gemini_api_key') || ''
+        };
+      }
+    } catch (e) {
+      console.warn('Could not restore AI parameters from localStorage', e);
+    }
+    return {
+      temperature: 0.7,
+      maxTokens: 2048,
+      systemPrompt: "You are Kone AI, an advanced, friendly, and knowledgeable educational AI assistant for Kone Code Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
+      geminiApiKey: typeof localStorage !== 'undefined' ? localStorage.getItem('kone_gemini_api_key') || '' : ''
+    };
   });
 
   // Chat Input Text
@@ -181,6 +245,18 @@ function App() {
       console.warn('Failed to save sessions to localStorage', e);
     }
   }, [sessions]);
+
+  // Persist AI parameters and custom API key to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('kone_ai_parameters', JSON.stringify(parameters));
+      if (parameters.geminiApiKey !== undefined) {
+        localStorage.setItem('kone_gemini_api_key', parameters.geminiApiKey);
+      }
+    } catch (e) {
+      console.warn('Failed to save parameters to localStorage', e);
+    }
+  }, [parameters]);
 
   // Auto-scroll logic: only scroll to bottom if there is an active ongoing conversation
   const scrollToBottom = () => {
@@ -314,15 +390,14 @@ function App() {
       let assistantContent = '';
       let returnedProvider = activeProvider;
 
-      // 1. If a live remote backend is explicitly configured (not localhost), try it first
-      const hasLiveRemoteBackend = API_URL && !API_URL.includes('localhost') && !API_URL.includes('127.0.0.1');
-
-      if (hasLiveRemoteBackend) {
+      // 1. Try backend API first (handles Gemini 3.8 Flash, 3.1 Pro, and subdomain knowledge grounding)
+      if (API_URL) {
         try {
           const response = await axios.post(`${API_URL}/api/chat`, {
             message: query,
             history,
             provider: activeProvider,
+            subdomain: activeSubdomain,
             temperature: parameters.temperature,
             maxTokens: parameters.maxTokens,
             systemPrompt: parameters.systemPrompt
@@ -335,7 +410,7 @@ function App() {
         }
       }
 
-      // 2. Direct Client-Side Gemini Edge Synthesis (Zero Backend needed)
+      // 2. Direct Client-Side Gemini Edge Synthesis fallback
       if (!assistantContent) {
         const synthesisResult = await synthesizeEducationalRoadmap({
           query,
@@ -343,18 +418,11 @@ function App() {
           provider: activeProvider,
           temperature: parameters.temperature,
           maxTokens: parameters.maxTokens,
-          systemPrompt: parameters.systemPrompt
+          systemPrompt: parameters.systemPrompt,
+          apiKey: parameters.geminiApiKey
         });
 
-        let formatted = synthesisResult.message;
-        if (synthesisResult.roadmap && synthesisResult.roadmap.length > 0) {
-          formatted += `\n\n### 🛠️ Projected Technical Milestones\n` + 
-            synthesisResult.roadmap.map((m) => `* **${m.tag}: ${m.name}**\n  _${m.reason}_`).join('\n\n');
-        }
-        if (synthesisResult.logicTrace && synthesisResult.logicTrace.length > 0) {
-          formatted += `\n\n> 🔍 **Logic Trace:**\n> ` + synthesisResult.logicTrace.join('\n> ');
-        }
-        assistantContent = formatted;
+        assistantContent = synthesisResult.message;
         returnedProvider = (synthesisResult.provider as ModelProvider) || activeProvider;
       }
 
@@ -465,7 +533,7 @@ function App() {
                 onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] border border-white/10 text-xs text-white transition-all shadow-sm"
               >
-                <Sparkles size={14} className="text-[#a8c7fa]" />
+                <KoneAILogo size={16} variant="glass" />
                 <span className="font-medium">{activeModelInfo.name}</span>
                 <span className="text-[10px] text-[#8e918f] font-mono hidden sm:inline">({activeModelInfo.speed})</span>
                 <ChevronDown size={14} className={`text-[#8e918f] transition-transform duration-200 ${modelDropdownOpen ? 'rotate-180' : ''}`} />
@@ -496,7 +564,7 @@ function App() {
                             : 'hover:bg-white/5 text-[#c4c7c5] hover:text-white'
                         }`}
                       >
-                        <Bot size={16} className={`mt-0.5 shrink-0 ${activeProvider === model.id ? 'text-[#a8c7fa]' : 'text-[#8e918f]'}`} />
+                        <KoneAILogo size={18} variant="glass" className="mt-0.5 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-medium truncate">{model.name}</span>
@@ -537,6 +605,38 @@ function App() {
           </div>
         </header>
 
+        {/* Subdomain Scope Selector Bar */}
+        <div className="border-b border-white/[0.06] bg-[#161718]/90 backdrop-blur-md px-4 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar z-10 shrink-0">
+          <span className="text-[11px] font-semibold text-[#8e918f] uppercase tracking-wider shrink-0 flex items-center gap-1.5 mr-1">
+            <Sparkles size={12} className="text-[#a8c7fa]" />
+            <span>Scope:</span>
+          </span>
+          {SUBDOMAIN_SCOPES.map((scope) => {
+            const isSelected = activeSubdomain === scope.id;
+            return (
+              <button
+                key={scope.id}
+                onClick={() => {
+                  setActiveSubdomain(scope.id);
+                  showToast(`Scoping AI knowledge to ${scope.name} (${scope.url})`, 'info');
+                }}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs transition-all ${
+                  isSelected
+                    ? 'bg-[#a8c7fa] text-[#131314] font-semibold shadow-sm'
+                    : 'bg-white/5 hover:bg-white/10 text-[#c4c7c5] hover:text-white border border-white/5'
+                }`}
+                title={`${scope.tagline} • ${scope.url}`}
+              >
+                <span>{scope.icon}</span>
+                <span>{scope.name}</span>
+                {isSelected && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
         {/* ── View 1: Main Chatbot Stream ──────────────────── */}
         {activeView === 'chat' && (
           <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -554,21 +654,18 @@ function App() {
                     key={msg.id}
                     className={`flex items-start gap-3.5 ${isUser ? 'justify-end' : 'justify-start'}`}
                   >
-                    {!isUser && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shrink-0 shadow-md">
-                        <Bot size={18} className="text-white" />
-                      </div>
-                    )}
-
-                    <div className={`max-w-[85%] sm:max-w-[78%] ${
+                    <div className={`max-w-[88%] sm:max-w-[82%] ${
                       isUser 
                         ? 'bg-[#282a2c] text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-md' 
-                        : 'bg-[#18191a]/90 text-[#e3e3e3] rounded-2xl rounded-tl-sm px-5 py-4 border border-white/[0.06] shadow-sm'
+                        : 'bg-[#18191a]/95 text-[#e3e3e3] rounded-2xl rounded-tl-sm px-5 py-4 border border-white/[0.06] shadow-sm'
                     }`}>
                       {/* Message Meta Info */}
                       {!isUser && (
                         <div className="flex items-center gap-2 mb-2 text-[11px] text-[#8e918f]">
-                          <span className="font-medium text-white">Kone AI</span>
+                          <span className="font-medium text-white flex items-center gap-1.5">
+                            <KoneAILogo size={14} variant="glass" />
+                            <span>Kone AI</span>
+                          </span>
                           {msg.provider && (
                             <>
                               <span>·</span>
@@ -601,15 +698,16 @@ function App() {
 
               {/* Generating / Thinking Indicator */}
               {isGenerating && (
-                <div className="flex items-start gap-3.5">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shrink-0 animate-pulse">
-                    <Sparkles size={16} className="text-white" />
-                  </div>
-                  <div className="bg-[#18191a] border border-white/[0.06] rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
+                <div className="flex items-start">
+                  <div className="bg-[#18191a] border border-white/[0.06] rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2.5">
+                    <KoneAILogo size={15} variant="glass" className="animate-spin" />
                     <span className="w-2 h-2 rounded-full bg-[#a8c7fa] animate-bounce"></span>
                     <span className="w-2 h-2 rounded-full bg-[#a8c7fa] animate-bounce [animation-delay:0.2s]"></span>
                     <span className="w-2 h-2 rounded-full bg-[#a8c7fa] animate-bounce [animation-delay:0.4s]"></span>
-                    <span className="text-xs text-[#8e918f] ml-1 font-mono">Thinking with {activeModelInfo.name}...</span>
+                    <span className="text-xs text-[#8e918f] ml-1 font-mono">
+                      Thinking with {activeModelInfo.name}
+                      {activeSubdomain !== 'all' && ` [${SUBDOMAIN_SCOPES.find(s => s.id === activeSubdomain)?.name}]`}...
+                    </span>
                   </div>
                 </div>
               )}
@@ -618,10 +716,12 @@ function App() {
               {activeSession.messages.length <= 1 && (
                 <div className="mt-8 pt-4 border-t border-white/[0.06]">
                   <p className="text-xs font-medium text-[#8e918f] mb-3 text-center">
-                    Try asking one of these questions to get started:
+                    {activeSubdomain === 'all' 
+                      ? 'Try asking one of these questions to explore the ecosystem:'
+                      : `Explore ${SUBDOMAIN_SCOPES.find(s => s.id === activeSubdomain)?.name || activeSubdomain} curated questions:`}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {SUGGESTED_PROMPTS.map((promptItem, idx) => (
+                    {(PROMPTS_BY_SUBDOMAIN[activeSubdomain] || PROMPTS_BY_SUBDOMAIN['all']).map((promptItem, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleSendMessage(promptItem.prompt)}
@@ -860,6 +960,31 @@ function App() {
                 />
               </div>
 
+              {/* Custom Gemini API Key Card */}
+              <div className="p-5 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-medium text-white flex items-center gap-2">
+                    <Sparkles size={16} className="text-[#a8c7fa]" />
+                    Custom Google Gemini API Key (Optional)
+                  </label>
+                  <span className="text-[11px] text-[#8e918f]">Browser Storage</span>
+                </div>
+                <input
+                  type="password"
+                  placeholder="AIzaSy... (leave blank to use smart offline engine)"
+                  value={parameters.geminiApiKey || ''}
+                  onChange={(e) => setParameters({ ...parameters, geminiApiKey: e.target.value })}
+                  className="w-full bg-[#131314] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-[#8ab4f8] font-mono leading-relaxed"
+                />
+                <p className="text-[11px] text-[#8e918f]">
+                  Get a 100% free API key from{' '}
+                  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[#8ab4f8] underline hover:text-white">
+                    Google AI Studio
+                  </a>
+                  . Stored privately on your machine for zero-server direct calls.
+                </p>
+              </div>
+
               {/* Reset to Defaults button */}
               <div className="flex justify-end gap-3 pt-2">
                 <button
@@ -867,7 +992,8 @@ function App() {
                     setParameters({
                       temperature: 0.7,
                       maxTokens: 2048,
-                      systemPrompt: "You are Kone AI, an advanced, friendly, and knowledgeable educational AI assistant for Kone Code Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful."
+                      systemPrompt: "You are Kone AI, an advanced, friendly, and knowledgeable educational AI assistant for Kone Code Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
+                      geminiApiKey: ''
                     });
                     showToast('Reset parameters to academy defaults', 'info');
                   }}

@@ -87,29 +87,6 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
             const trimmed = paragraph.trim();
             if (!trimmed) return null;
 
-            // Headings
-            if (trimmed.startsWith('### ')) {
-              return (
-                <h3 key={pIdx} className="text-base sm:text-lg font-semibold text-white mt-3 mb-1">
-                  {trimmed.replace(/^###\s+/, '')}
-                </h3>
-              );
-            }
-            if (trimmed.startsWith('## ')) {
-              return (
-                <h2 key={pIdx} className="text-lg sm:text-xl font-bold text-white mt-4 mb-1">
-                  {trimmed.replace(/^##\s+/, '')}
-                </h2>
-              );
-            }
-            if (trimmed.startsWith('# ')) {
-              return (
-                <h1 key={pIdx} className="text-xl sm:text-2xl font-bold text-white mt-4 mb-2">
-                  {trimmed.replace(/^#\s+/, '')}
-                </h1>
-              );
-            }
-
             // Parse lines inside this paragraph block
             const lines = trimmed.split('\n');
             const elements: React.ReactNode[] = [];

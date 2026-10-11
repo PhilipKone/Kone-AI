@@ -18,6 +18,7 @@ export interface SynthesisOptions {
   temperature?: number;
   maxTokens?: number;
   systemPrompt?: string;
+  apiKey?: string;
 }
 
 const DEFAULT_SYSTEM_PROMPT = `
@@ -95,7 +96,10 @@ export async function synthesizeEducationalRoadmap(options: SynthesisOptions): P
     systemPrompt = DEFAULT_SYSTEM_PROMPT
   } = options;
 
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+  const explicitKey = (options.apiKey || '').trim();
+  const storedKey = typeof localStorage !== 'undefined' ? (localStorage.getItem('kone_gemini_api_key') || '').trim() : '';
+  const envKey = (import.meta.env.VITE_GEMINI_API_KEY || '').trim();
+  const apiKey = explicitKey || storedKey || envKey;
 
   // If no API key is set, use the smart educational fallback immediately
   if (!apiKey || apiKey === 'your_gemini_api_key_here') {
@@ -108,8 +112,8 @@ export async function synthesizeEducationalRoadmap(options: SynthesisOptions): P
 
   // Model candidate priority list
   const modelCandidates = provider === 'gemini-pro'
-    ? ['gemini-2.5-pro', 'gemini-1.5-pro']
-    : ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+    ? ['gemini-2.5-pro', 'gemini-1.5-pro-latest']
+    : ['gemini-2.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-flash-latest'];
 
   // Prepare multi-turn contents
   const contents = history.slice(-6).map(h => ({

@@ -1,6 +1,8 @@
 export type Role = 'user' | 'assistant' | 'system';
 
 export type ModelProvider = 
+  | 'gemini-3.8-flash'
+  | 'gemini-3.1-pro'
   | 'gemini-flash' 
   | 'gemini-pro' 
   | 'gpt-4o-mini' 
@@ -15,12 +17,21 @@ export interface ModelOption {
   speed: 'Ultra-Fast' | 'Fast' | 'Reasoning';
 }
 
+export interface SubdomainScope {
+  id: string;
+  name: string;
+  icon: string;
+  url: string;
+  tagline: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: Role;
   content: string;
   timestamp: number;
   provider?: string;
+  subdomain?: string;
   isError?: boolean;
 }
 
@@ -31,6 +42,7 @@ export interface ChatSession {
   createdAt: number;
   updatedAt: number;
   provider: ModelProvider;
+  subdomain?: string;
 }
 
 export interface ChatRequest {
@@ -40,6 +52,7 @@ export interface ChatRequest {
     content: string;
   }>;
   provider: ModelProvider;
+  subdomain?: string;
   temperature?: number;
   maxTokens?: number;
 }
@@ -48,6 +61,7 @@ export interface ChatResponse {
   role: 'assistant';
   content: string;
   provider: string;
+  subdomain?: string;
   timestamp: number;
   logicTrace?: string[];
   roadmap?: any[];
@@ -57,4 +71,5 @@ export interface AISettings {
   temperature: number;
   maxTokens: number;
   systemPrompt: string;
+  geminiApiKey?: string;
 }

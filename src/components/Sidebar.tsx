@@ -13,6 +13,7 @@ import {
   Bot
 } from 'lucide-react';
 import { ChatSession } from '../types';
+import KoneAILogo from './KoneAILogo';
 
 interface SidebarProps {
   activeView: string;
@@ -84,8 +85,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {(isMobileMode || !collapsed) && (
           <div className="flex items-center gap-2 pr-2">
-            <span className="font-semibold text-sm text-white flex items-center gap-1.5">
-              <Bot size={18} className="text-[#a8c7fa]" />
+            <span className="font-semibold text-sm text-white flex items-center gap-2">
+              <KoneAILogo size={22} variant="glass" className="drop-shadow-sm" />
               <span>Kone AI</span>
             </span>
             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#a8c7fa]/10 text-[#a8c7fa] font-mono">

@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
+import { getSubdomainKnowledgeContext, SUBDOMAIN_PROFILES } from './subdomainKnowledge.ts';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ export interface ChatRequestBody {
   query?: string; // alias for message
   history?: ChatHistoryItem[];
   provider?: string;
+  subdomain?: string;
   temperature?: number;
   maxTokens?: number;
   systemPrompt?: string;
@@ -261,9 +263,9 @@ async function executeChatCompletion(params: {
   // ── Provider 3: Google Gemini (Default) ──
   if (genAI) {
     try {
-      const modelCandidates = provider === 'gemini-pro'
-        ? ['gemini-2.5-pro', 'gemini-1.5-pro']
-        : ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+      const modelCandidates = (provider === 'gemini-3.1-pro' || provider === 'gemini-pro')
+        ? ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-1.5-pro']
+        : ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
 
       const geminiContents = formattedHistory.map(h => ({
         role: h.role === 'assistant' ? 'model' : 'user',
@@ -327,10 +329,12 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Message is required and must be a non-empty string.' });
     }
 
-    const provider = body.provider || serverSettings.activeProvider || 'gemini-flash';
+    const provider = body.provider || serverSettings.activeProvider || 'gemini-3.8-flash';
     const temperature = Math.min(Math.max(typeof body.temperature === 'number' ? body.temperature : serverSettings.temperature, 0.0), 2.0);
     const maxTokens = Math.min(Math.max(typeof body.maxTokens === 'number' ? body.maxTokens : serverSettings.maxTokens, 128), 4096);
-    const systemPrompt = body.systemPrompt || serverSettings.systemPrompt;
+    const basePrompt = body.systemPrompt || serverSettings.systemPrompt;
+    const subdomain = body.subdomain || 'all';
+    const groundedPrompt = `${basePrompt}\n\n${getSubdomainKnowledgeContext(subdomain)}`;
     const history = Array.isArray(body.history) ? body.history : [];
 
     const result = await executeChatCompletion({
@@ -339,13 +343,14 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       provider,
       temperature,
       maxTokens,
-      systemPrompt
+      systemPrompt: groundedPrompt
     });
 
     return res.json({
       role: 'assistant',
       content: result.content,
       provider: result.provider,
+      subdomain,
       timestamp: Date.now()
     });
   } catch (err: any) {
@@ -355,6 +360,13 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       message: err.message
     });
   }
+});
+
+// Subdomain Directory Endpoint
+app.get('/api/subdomains', (req: Request, res: Response) => {
+  res.json({
+    subdomains: Object.values(SUBDOMAIN_PROFILES)
+  });
 });
 
 // 2. Backwards-Compatible /api/synthesize Endpoint
