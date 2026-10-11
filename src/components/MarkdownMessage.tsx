@@ -82,7 +82,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
 
       // Process normal text blocks (headings, lists, bold, inline code)
       return (
-        <div key={index} className="space-y-2 leading-relaxed">
+        <div key={index} className="space-y-2.5 leading-relaxed">
           {part.split('\n\n').map((paragraph, pIdx) => {
             const trimmed = paragraph.trim();
             if (!trimmed) return null;
@@ -110,44 +110,98 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
               );
             }
 
-            // Bullet Lists
-            if (trimmed.split('\n').every(line => line.trim().startsWith('- ') || line.trim().startsWith('* '))) {
-              return (
-                <ul key={pIdx} className="list-disc list-inside space-y-1 my-2 pl-1 text-[#e3e3e3]">
-                  {trimmed.split('\n').map((li, liIdx) => {
-                    const cleanLi = li.replace(/^[-*]\s+/, '');
-                    return (
-                      <li key={liIdx} className="text-sm">
-                        {renderInlineFormatting(cleanLi)}
-                      </li>
-                    );
-                  })}
-                </ul>
-              );
-            }
+            // Parse lines inside this paragraph block
+            const lines = trimmed.split('\n');
+            const elements: React.ReactNode[] = [];
+            let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
 
-            // Numbered Lists
-            if (trimmed.split('\n').every(line => /^\d+\.\s+/.test(line.trim()))) {
-              return (
-                <ol key={pIdx} className="list-decimal list-inside space-y-1 my-2 pl-1 text-[#e3e3e3]">
-                  {trimmed.split('\n').map((li, liIdx) => {
-                    const cleanLi = li.replace(/^\d+\.\s+/, '');
-                    return (
-                      <li key={liIdx} className="text-sm">
-                        {renderInlineFormatting(cleanLi)}
+            const flushList = (keyPrefix: string) => {
+              if (!currentList) return;
+              if (currentList.type === 'ul') {
+                elements.push(
+                  <ul key={`${keyPrefix}-ul`} className="list-disc list-inside space-y-1.5 my-2 pl-1 text-[#e3e3e3]">
+                    {currentList.items.map((item, itemIdx) => (
+                      <li key={itemIdx} className="text-sm leading-relaxed">
+                        {renderInlineFormatting(item)}
                       </li>
-                    );
-                  })}
-                </ol>
-              );
-            }
+                    ))}
+                  </ul>
+                );
+              } else {
+                elements.push(
+                  <ol key={`${keyPrefix}-ol`} className="list-decimal list-inside space-y-1.5 my-2 pl-1 text-[#e3e3e3]">
+                    {currentList.items.map((item, itemIdx) => (
+                      <li key={itemIdx} className="text-sm leading-relaxed">
+                        {renderInlineFormatting(item)}
+                      </li>
+                    ))}
+                  </ol>
+                );
+              }
+              currentList = null;
+            };
 
-            // Regular Paragraph
-            return (
-              <p key={pIdx} className="text-sm sm:text-[15px] text-[#e3e3e3] leading-relaxed">
-                {renderInlineFormatting(trimmed)}
-              </p>
-            );
+            lines.forEach((line, lineIdx) => {
+              const l = line.trim();
+              if (!l) return;
+
+              if (l.startsWith('#### ')) {
+                flushList(`line-${lineIdx}`);
+                elements.push(
+                  <h4 key={`h4-${lineIdx}`} className="text-sm sm:text-[15px] font-semibold text-white mt-3 mb-1">
+                    {renderInlineFormatting(l.replace(/^####\s+/, ''))}
+                  </h4>
+                );
+              } else if (l.startsWith('### ')) {
+                flushList(`line-${lineIdx}`);
+                elements.push(
+                  <h3 key={`h3-${lineIdx}`} className="text-base sm:text-lg font-semibold text-white mt-3.5 mb-1">
+                    {renderInlineFormatting(l.replace(/^###\s+/, ''))}
+                  </h3>
+                );
+              } else if (l.startsWith('## ')) {
+                flushList(`line-${lineIdx}`);
+                elements.push(
+                  <h2 key={`h2-${lineIdx}`} className="text-lg sm:text-xl font-bold text-white mt-4 mb-1.5">
+                    {renderInlineFormatting(l.replace(/^##\s+/, ''))}
+                  </h2>
+                );
+              } else if (l.startsWith('# ')) {
+                flushList(`line-${lineIdx}`);
+                elements.push(
+                  <h1 key={`h1-${lineIdx}`} className="text-xl sm:text-2xl font-bold text-white mt-4 mb-2">
+                    {renderInlineFormatting(l.replace(/^#\s+/, ''))}
+                  </h1>
+                );
+              } else if (l.startsWith('- ') || l.startsWith('* ')) {
+                const itemText = l.replace(/^[-*]\s+/, '');
+                if (currentList && currentList.type === 'ul') {
+                  currentList.items.push(itemText);
+                } else {
+                  flushList(`line-${lineIdx}`);
+                  currentList = { type: 'ul', items: [itemText] };
+                }
+              } else if (/^\d+\.\s+/.test(l)) {
+                const itemText = l.replace(/^\d+\.\s+/, '');
+                if (currentList && currentList.type === 'ol') {
+                  currentList.items.push(itemText);
+                } else {
+                  flushList(`line-${lineIdx}`);
+                  currentList = { type: 'ol', items: [itemText] };
+                }
+              } else {
+                flushList(`line-${lineIdx}`);
+                elements.push(
+                  <p key={`p-${lineIdx}`} className="text-sm sm:text-[15px] text-[#e3e3e3] leading-relaxed">
+                    {renderInlineFormatting(l)}
+                  </p>
+                );
+              }
+            });
+
+            flushList('final');
+
+            return <div key={pIdx} className="space-y-1.5">{elements}</div>;
           })}
         </div>
       );

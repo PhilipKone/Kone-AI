@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { synthesizeEducationalRoadmap } from './services/aiSynthesizer';
 import './index.css';
 import { 
   ChatMessage, 
@@ -164,6 +165,7 @@ function App() {
   // Chat Input Text
   const [inputQuery, setInputQuery] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Knowledge base state
@@ -180,14 +182,23 @@ function App() {
     }
   }, [sessions]);
 
-  // Auto-scroll to bottom of messages
+  // Auto-scroll logic: only scroll to bottom if there is an active ongoing conversation
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
     if (activeView === 'chat') {
-      scrollToBottom();
+      const currentSession = sessions.find(s => s.id === activeSessionId);
+      const messageCount = currentSession?.messages.length || 0;
+      if (messageCount > 1 || isGenerating) {
+        scrollToBottom();
+      } else {
+        // Reset scroll position to top on fresh welcome view
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = 0;
+        }
+      }
     }
   }, [sessions, activeSessionId, isGenerating, activeView]);
 
@@ -300,19 +311,52 @@ function App() {
           content: m.content
         }));
 
-      // Call Express API endpoint
-      const response = await axios.post(`${API_URL}/api/chat`, {
-        message: query,
-        history,
-        provider: activeProvider,
-        temperature: parameters.temperature,
-        maxTokens: parameters.maxTokens,
-        systemPrompt: parameters.systemPrompt
-      });
+      let assistantContent = '';
+      let returnedProvider = activeProvider;
 
-      const data = response.data;
-      const assistantContent = data.content || data.message || "I have received your request, but could not synthesize a response.";
-      const returnedProvider = data.provider || activeProvider;
+      // 1. If a live remote backend is explicitly configured (not localhost), try it first
+      const hasLiveRemoteBackend = API_URL && !API_URL.includes('localhost') && !API_URL.includes('127.0.0.1');
+
+      if (hasLiveRemoteBackend) {
+        try {
+          const response = await axios.post(`${API_URL}/api/chat`, {
+            message: query,
+            history,
+            provider: activeProvider,
+            temperature: parameters.temperature,
+            maxTokens: parameters.maxTokens,
+            systemPrompt: parameters.systemPrompt
+          });
+          const data = response.data;
+          assistantContent = data.content || data.message || '';
+          returnedProvider = (data.provider as ModelProvider) || activeProvider;
+        } catch (backendErr) {
+          console.warn('Backend call failed, falling back to direct client-side Gemini:', backendErr);
+        }
+      }
+
+      // 2. Direct Client-Side Gemini Edge Synthesis (Zero Backend needed)
+      if (!assistantContent) {
+        const synthesisResult = await synthesizeEducationalRoadmap({
+          query,
+          history,
+          provider: activeProvider,
+          temperature: parameters.temperature,
+          maxTokens: parameters.maxTokens,
+          systemPrompt: parameters.systemPrompt
+        });
+
+        let formatted = synthesisResult.message;
+        if (synthesisResult.roadmap && synthesisResult.roadmap.length > 0) {
+          formatted += `\n\n### 🛠️ Projected Technical Milestones\n` + 
+            synthesisResult.roadmap.map((m) => `* **${m.tag}: ${m.name}**\n  _${m.reason}_`).join('\n\n');
+        }
+        if (synthesisResult.logicTrace && synthesisResult.logicTrace.length > 0) {
+          formatted += `\n\n> 🔍 **Logic Trace:**\n> ` + synthesisResult.logicTrace.join('\n> ');
+        }
+        assistantContent = formatted;
+        returnedProvider = (synthesisResult.provider as ModelProvider) || activeProvider;
+      }
 
       const aiMsg: ChatMessage = {
         id: `msg-ai-${Date.now()}`,
@@ -339,7 +383,7 @@ function App() {
       const errorMsg: ChatMessage = {
         id: `msg-err-${Date.now()}`,
         role: 'assistant',
-        content: `⚠️ **Connection Notice:** Could not reach the local AI server at \`${API_URL}\`.\n\nPlease make sure your backend is running (\`npm run dev\` in \`server/\`). You can also configure API keys in your server \`.env\` file.`,
+        content: `⚠️ **Connection Notice:** Unable to reach the AI synthesis service right now. Please check your internet connection or try again shortly.`,
         timestamp: Date.now(),
         isError: true,
         provider: 'System'
@@ -498,7 +542,10 @@ function App() {
           <div className="flex-1 flex flex-col overflow-hidden relative">
             
             {/* Messages Scroll Area */}
-            <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 space-y-6 max-w-4xl w-full mx-auto">
+            <div 
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto px-4 py-6 md:px-8 space-y-6 max-w-4xl w-full mx-auto"
+            >
               
               {activeSession.messages.map((msg) => {
                 const isUser = msg.role === 'user';
@@ -601,7 +648,7 @@ function App() {
             {/* Bottom Sticky Chat Input Bar */}
             <div className="p-4 md:pb-6 bg-gradient-to-t from-[#131314] via-[#131314] to-transparent">
               <div className="max-w-4xl w-full mx-auto">
-                <div className="relative gemini-capsule p-2 flex items-end gap-2 border border-white/10 bg-[#1e1f20] focus-within:border-[#8ab4f8]/60 transition-all">
+                <div className="relative gemini-capsule px-3 py-2 flex items-center gap-2 border border-white/10 bg-[#1e1f20] focus-within:border-[#8ab4f8]/60 transition-all">
                   
                   {/* Multi-line auto-resizing textarea */}
                   <textarea
@@ -609,9 +656,9 @@ function App() {
                     value={inputQuery}
                     onChange={handleTextareaInput}
                     onKeyDown={handleKeyDown}
-                    placeholder={`Ask Kone AI anything... (Press Enter to send, Shift+Enter for newline)`}
+                    placeholder="Ask Kone AI anything... (Press Enter to send, Shift+Enter for newline)"
                     rows={1}
-                    className="flex-1 max-h-44 bg-transparent border-0 outline-none text-sm text-white placeholder:text-[#8e918f] resize-none px-3 py-2 no-scrollbar leading-relaxed"
+                    className="flex-1 max-h-44 bg-transparent border-0 outline-none text-sm text-white placeholder:text-[#8e918f] resize-none px-2 py-1.5 no-scrollbar leading-normal min-h-[36px]"
                   />
 
                   {/* Send Button */}
