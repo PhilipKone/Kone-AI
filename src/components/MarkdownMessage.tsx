@@ -79,7 +79,10 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
     }
 
     // Auto-normalize <https://...> autolinks to [https://...](https://...)
-    const normalized = text.replace(/<(https?:\/\/[^>]+)>/g, '[$1]($1)');
+    // Normalize typographic curly quotes around identifiers to backticks
+    const normalized = text
+      .replace(/<(https?:\/\/[^>]+)>/g, '[$1]($1)')
+      .replace(/[‘’]([a-zA-Z0-9_().->:/*]+)[‘’]/g, '`$1`');
 
     // Tokenize by code `...`, links [...](...), bold **...**, italic *...*
     const tokens = normalized.split(/(`[^`]+`|\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_)/g);
@@ -103,6 +106,9 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
       const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
       if (linkMatch) {
         const [, label, url] = linkMatch;
+        const displayLabel = label.startsWith('http')
+          ? label.replace(/^https?:\/\//, '').replace(/\/$/, '')
+          : label;
         return (
           <a
             key={tIdx}
@@ -111,7 +117,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
             rel="noopener noreferrer"
             className="text-[#8ab4f8] hover:text-[#c2e7ff] underline underline-offset-2 transition-colors font-medium inline-flex items-center gap-0.5"
           >
-            <span>{label}</span>
+            <span>{displayLabel}</span>
             <ExternalLink size={11} className="inline opacity-70 ml-0.5 shrink-0" />
           </a>
         );
