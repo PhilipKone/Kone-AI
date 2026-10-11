@@ -220,8 +220,15 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
 
   // Main parser for full message
   const renderFormattedContent = (rawText: string) => {
+    // Ensure unclosed code fences are closed so incomplete responses render properly
+    let preparedText = rawText;
+    const fenceMatches = (preparedText.match(/```/g) || []).length;
+    if (fenceMatches % 2 !== 0) {
+      preparedText += '\n```';
+    }
+
     // Split by fenced code blocks: ```[language]\n[code]```
-    const parts = rawText.split(/(```[\s\S]*?```)/g);
+    const parts = preparedText.split(/(```[\s\S]*?```)/g);
 
     return parts.map((part, index) => {
       // Code Block
