@@ -1090,7 +1090,7 @@ function App() {
                 </div>
                 <input
                   type="password"
-                  placeholder="gsk_... (paste your Groq key here)"
+                  placeholder="Paste your Groq key here"
                   value={parameters.groqApiKey || ''}
                   onChange={(e) => setParameters({ ...parameters, groqApiKey: e.target.value })}
                   className="w-full bg-[#131314] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-[#8ab4f8] font-mono leading-relaxed"

@@ -62,6 +62,15 @@ function extractJSON(text: string): any {
 export function resolveApiKey(key?: string): string {
   if (!key) return '';
   const trimmed = key.trim();
+  if (trimmed.startsWith('=')) {
+    try {
+      if (typeof atob !== 'undefined') {
+        return atob(trimmed.split('').reverse().join(''));
+      }
+    } catch {
+      return trimmed;
+    }
+  }
   if (trimmed.startsWith('QVEu') || (trimmed.length > 40 && trimmed.endsWith('='))) {
     try {
       if (typeof atob !== 'undefined') {
@@ -207,16 +216,21 @@ export async function generateClientChat(options: SynthesisOptions & { subdomain
   };
 
   // 1. If Groq model requested directly
-  if (provider === 'groq-llama-70b' || provider === 'groq-deepseek-r1') {
-    const groqModel = provider === 'groq-deepseek-r1' ? 'deepseek-r1-distill-llama-70b' : 'llama-3.3-70b-versatile';
+  if (provider === 'groq-llama-70b' || provider === 'groq-deepseek-r1' || provider.startsWith('groq')) {
+    const candidates = provider === 'groq-deepseek-r1'
+      ? ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'deepseek-r1-distill-llama-70b']
+      : ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'llama-3.3-70b-versatile', 'openai/gpt-oss-20b'];
+
     if (groqApiKey) {
-      const responseText = await executeGroqEdge(groqModel);
-      if (responseText) {
-        return { content: responseText, provider: groqModel };
+      for (const model of candidates) {
+        const responseText = await executeGroqEdge(model);
+        if (responseText) {
+          return { content: responseText, provider: `Groq (${model})` };
+        }
       }
     }
     return {
-      content: generateClientFallbackText(query, `Groq (${groqModel})`, subdomain),
+      content: generateClientFallbackText(query, `Groq LPU`, subdomain),
       provider
     };
   }
@@ -230,9 +244,11 @@ export async function generateClientChat(options: SynthesisOptions & { subdomain
   if (!apiKey || apiKey === 'your_gemini_api_key_here') {
     // If no Gemini key, but Groq key is present, use Groq automatically!
     if (groqApiKey) {
-      const autoGroq = await executeGroqEdge('llama-3.3-70b-versatile');
-      if (autoGroq) {
-        return { content: autoGroq, provider: 'llama-3.3-70b-versatile (Groq)' };
+      for (const model of ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b']) {
+        const autoGroq = await executeGroqEdge(model);
+        if (autoGroq) {
+          return { content: autoGroq, provider: `Groq (${model})` };
+        }
       }
     }
 
@@ -291,9 +307,11 @@ export async function generateClientChat(options: SynthesisOptions & { subdomain
 
   // 3. If Gemini quota 429 was exhausted, try auto-failover to Groq if key exists!
   if (groqApiKey) {
-    const autoGroq = await executeGroqEdge('llama-3.3-70b-versatile');
-    if (autoGroq) {
-      return { content: autoGroq, provider: 'llama-3.3-70b-versatile (Groq Auto-Failover)' };
+    for (const model of ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b']) {
+      const autoGroq = await executeGroqEdge(model);
+      if (autoGroq) {
+        return { content: autoGroq, provider: `Groq (${model} Auto-Failover)` };
+      }
     }
   }
 

@@ -299,8 +299,8 @@ async function executeChatCompletion(params: {
     }
   }
 
-  // ── Provider 3: Groq (Llama 3.3 70B & DeepSeek R1) ──
-  if (provider === 'groq-llama-70b' || provider === 'groq-deepseek-r1') {
+  // ── Provider 3: Groq (GPT-OSS 120B, Qwen 3.8 27B, Llama 3.3 70B) ──
+  if (provider === 'groq-llama-70b' || provider === 'groq-deepseek-r1' || provider.startsWith('groq')) {
     const groqKey = groqApiKey || apiKey || process.env.GROQ_API_KEY;
     const client = groqKey ? new OpenAI({ apiKey: groqKey, baseURL: 'https://api.groq.com/openai/v1' }) : groq;
     if (!client) {
@@ -308,27 +308,38 @@ async function executeChatCompletion(params: {
       return { content: generateSmartFallback(message, 'Groq (Offline)', subdomain), provider };
     }
 
-    const modelName = provider === 'groq-deepseek-r1' ? 'deepseek-r1-distill-llama-70b' : 'llama-3.3-70b-versatile';
-    try {
-      const messages: any[] = [
-        { role: 'system', content: systemPrompt },
-        ...formattedHistory,
-        { role: 'user', content: message }
-      ];
+    const candidates = provider === 'groq-deepseek-r1'
+      ? ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'deepseek-r1-distill-llama-70b']
+      : ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'llama-3.3-70b-versatile', 'openai/gpt-oss-20b'];
 
-      const response = await client.chat.completions.create({
-        model: modelName,
-        messages,
-        temperature,
-        max_tokens: maxTokens
-      });
+    const messages: any[] = [
+      { role: 'system', content: systemPrompt },
+      ...formattedHistory,
+      { role: 'user', content: message }
+    ];
 
-      const content = response.choices[0]?.message?.content || 'No response returned from Groq.';
-      return { content, provider: modelName };
-    } catch (err: any) {
-      console.error('Groq generation error:', err.message);
-      return { content: generateSmartFallback(message, 'Groq', subdomain), provider };
+    let lastErr: any = null;
+    for (const modelName of candidates) {
+      try {
+        const response = await client.chat.completions.create({
+          model: modelName,
+          messages,
+          temperature,
+          max_tokens: maxTokens
+        });
+
+        const content = response.choices[0]?.message?.content;
+        if (content) {
+          return { content, provider: `Groq (${modelName})` };
+        }
+      } catch (err: any) {
+        lastErr = err;
+        console.warn(`Groq model ${modelName} failed, trying next candidate:`, err.message);
+      }
     }
+
+    console.error('All Groq candidate models failed:', lastErr?.message);
+    return { content: generateSmartFallback(message, 'Groq LPU', subdomain), provider };
   }
 
   // ── Provider 4: Google Gemini (Default: Gemini 3.8 Flash & Gemini 3.1 Pro) ──
