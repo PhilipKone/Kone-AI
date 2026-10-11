@@ -21,6 +21,7 @@ export interface SynthesisOptions {
   maxTokens?: number;
   systemPrompt?: string;
   apiKey?: string;
+  groqApiKey?: string;
 }
 
 const DEFAULT_SYSTEM_PROMPT = `
@@ -141,8 +142,8 @@ export function generateClientFallbackText(query: string, providerName: string =
 }
 
 /**
- * Direct Client-Side Live Gemini Chat Generator
- * Connects directly to Google Generative Language API from the browser.
+ * Direct Client-Side Live AI Chat Generator
+ * Supports Google Gemini API & Groq LPU API directly from the browser.
  * Requires zero backend servers and operates on all devices worldwide!
  */
 export async function generateClientChat(options: SynthesisOptions & { subdomain?: string }): Promise<{ content: string; provider: string }> {
@@ -156,20 +157,90 @@ export async function generateClientChat(options: SynthesisOptions & { subdomain
     subdomain = 'all'
   } = options;
 
+  const effectiveTemperature = Math.min(Math.max(Number(temperature) || 0.7, 0.0), 2.0);
+  const effectiveMaxTokens = Math.min(Math.max(Math.round(Number(maxTokens) || 2048), 128), 4096);
+  const groundedSystemInstruction = `${systemPrompt}\n\n${getSubdomainKnowledgeContext(subdomain)}`;
+
+  // Resolve Groq credentials
+  const explicitGroqKey = resolveApiKey(options.groqApiKey);
+  const storedGroqKey = typeof localStorage !== 'undefined' ? resolveApiKey(localStorage.getItem('kone_groq_api_key') || '') : '';
+  const envGroqKey = resolveApiKey(import.meta.env.VITE_GROQ_API_KEY);
+  const groqApiKey = explicitGroqKey || storedGroqKey || envGroqKey;
+
+  // Helper for direct Groq browser execution
+  const executeGroqEdge = async (model: string): Promise<string | null> => {
+    if (!groqApiKey) return null;
+    try {
+      const messages = [
+        { role: 'system', content: groundedSystemInstruction },
+        ...history.slice(-8).map(h => ({
+          role: h.role === 'ai' || h.role === 'assistant' || h.role === 'model' ? 'assistant' : 'user',
+          content: typeof h.content === 'string' ? h.content : JSON.stringify(h.content)
+        })),
+        { role: 'user', content: query }
+      ];
+
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${groqApiKey}`
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: effectiveTemperature,
+          max_tokens: effectiveMaxTokens
+        })
+      });
+
+      if (!res.ok) {
+        console.warn(`Groq ${model} status:`, res.status);
+        return null;
+      }
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || null;
+    } catch (err) {
+      console.warn(`Groq edge call failed:`, err);
+      return null;
+    }
+  };
+
+  // 1. If Groq model requested directly
+  if (provider === 'groq-llama-70b' || provider === 'groq-deepseek-r1') {
+    const groqModel = provider === 'groq-deepseek-r1' ? 'deepseek-r1-distill-llama-70b' : 'llama-3.3-70b-versatile';
+    if (groqApiKey) {
+      const responseText = await executeGroqEdge(groqModel);
+      if (responseText) {
+        return { content: responseText, provider: groqModel };
+      }
+    }
+    return {
+      content: generateClientFallbackText(query, `Groq (${groqModel})`, subdomain),
+      provider
+    };
+  }
+
+  // 2. Google Gemini Execution
   const explicitKey = resolveApiKey(options.apiKey);
   const storedKey = typeof localStorage !== 'undefined' ? resolveApiKey(localStorage.getItem('kone_gemini_api_key') || '') : '';
   const envKey = resolveApiKey(import.meta.env.VITE_GEMINI_API_KEY);
   const apiKey = explicitKey || storedKey || envKey;
 
   if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+    // If no Gemini key, but Groq key is present, use Groq automatically!
+    if (groqApiKey) {
+      const autoGroq = await executeGroqEdge('llama-3.3-70b-versatile');
+      if (autoGroq) {
+        return { content: autoGroq, provider: 'llama-3.3-70b-versatile (Groq)' };
+      }
+    }
+
     return {
       content: generateClientFallbackText(query, 'Kone AI Edge', subdomain),
       provider: 'Kone AI Edge'
     };
   }
-
-  const effectiveTemperature = Math.min(Math.max(Number(temperature) || 0.7, 0.0), 2.0);
-  const effectiveMaxTokens = Math.min(Math.max(Math.round(Number(maxTokens) || 2048), 128), 4096);
 
   const modelCandidates = (provider === 'gemini-3.1-pro' || provider === 'gemini-pro')
     ? ['gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-2.5-flash']
@@ -183,8 +254,6 @@ export async function generateClientChat(options: SynthesisOptions & { subdomain
     role: 'user',
     parts: [{ text: query }]
   });
-
-  const groundedSystemInstruction = `${systemPrompt}\n\n${getSubdomainKnowledgeContext(subdomain)}`;
 
   for (const model of modelCandidates) {
     try {
@@ -217,6 +286,14 @@ export async function generateClientChat(options: SynthesisOptions & { subdomain
       }
     } catch (err) {
       console.warn(`Model ${model} edge error:`, err);
+    }
+  }
+
+  // 3. If Gemini quota 429 was exhausted, try auto-failover to Groq if key exists!
+  if (groqApiKey) {
+    const autoGroq = await executeGroqEdge('llama-3.3-70b-versatile');
+    if (autoGroq) {
+      return { content: autoGroq, provider: 'llama-3.3-70b-versatile (Groq Auto-Failover)' };
     }
   }
 

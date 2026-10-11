@@ -79,6 +79,20 @@ const MODEL_OPTIONS: ModelOption[] = [
     badge: 'Open Reasoning',
     description: 'Open-weights mathematical logic & algorithm engine',
     speed: 'Reasoning'
+  },
+  {
+    id: 'groq-llama-70b',
+    name: 'Llama 3.3 70B (Groq)',
+    badge: 'Groq LPU · 14,400 RPD',
+    description: 'Blazing fast inference with 14,400 free requests per day',
+    speed: 'Ultra-Fast'
+  },
+  {
+    id: 'groq-deepseek-r1',
+    name: 'DeepSeek R1 (Groq)',
+    badge: 'Groq Reasoning',
+    description: 'High-speed DeepSeek R1 deep reasoning and math via Groq',
+    speed: 'Reasoning'
   }
 ];
 
@@ -214,7 +228,8 @@ function App() {
           temperature: parsed.temperature ?? 0.7,
           maxTokens: parsed.maxTokens ?? 2048,
           systemPrompt: parsed.systemPrompt || "You are Kone AI, an advanced, friendly, and knowledgeable AI assistant for Kone Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI across all academy divisions. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
-          geminiApiKey: parsed.geminiApiKey || localStorage.getItem('kone_gemini_api_key') || ''
+          geminiApiKey: parsed.geminiApiKey || localStorage.getItem('kone_gemini_api_key') || '',
+          groqApiKey: parsed.groqApiKey || localStorage.getItem('kone_groq_api_key') || ''
         };
       }
     } catch (e) {
@@ -224,7 +239,8 @@ function App() {
       temperature: 0.7,
       maxTokens: 2048,
       systemPrompt: "You are Kone AI, an advanced, friendly, and knowledgeable AI assistant for Kone Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI across all academy divisions. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
-      geminiApiKey: typeof localStorage !== 'undefined' ? localStorage.getItem('kone_gemini_api_key') || '' : ''
+      geminiApiKey: typeof localStorage !== 'undefined' ? localStorage.getItem('kone_gemini_api_key') || '' : '',
+      groqApiKey: typeof localStorage !== 'undefined' ? localStorage.getItem('kone_groq_api_key') || '' : ''
     };
   });
 
@@ -254,6 +270,9 @@ function App() {
       localStorage.setItem('kone_ai_parameters', JSON.stringify(parameters));
       if (parameters.geminiApiKey !== undefined) {
         localStorage.setItem('kone_gemini_api_key', parameters.geminiApiKey);
+      }
+      if (parameters.groqApiKey !== undefined) {
+        localStorage.setItem('kone_groq_api_key', parameters.groqApiKey);
       }
     } catch (e) {
       console.warn('Failed to save parameters to localStorage', e);
@@ -392,7 +411,7 @@ function App() {
       let assistantContent = '';
       let returnedProvider = activeProvider;
 
-      // 1. Try backend API first (handles Gemini 3.8 Flash, 3.1 Pro, and subdomain knowledge grounding)
+      // 1. Try backend API first (handles Gemini, Groq, DeepSeek, and subdomain knowledge grounding)
       if (API_URL) {
         try {
           const response = await axios.post(`${API_URL}/api/chat`, {
@@ -404,17 +423,18 @@ function App() {
             maxTokens: parameters.maxTokens,
             systemPrompt: parameters.systemPrompt,
             geminiApiKey: parameters.geminiApiKey,
-            apiKey: parameters.geminiApiKey
+            apiKey: parameters.geminiApiKey,
+            groqApiKey: parameters.groqApiKey
           });
           const data = response.data;
           assistantContent = data.content || data.message || '';
           returnedProvider = (data.provider as ModelProvider) || activeProvider;
         } catch (backendErr) {
-          console.warn('Backend call failed, falling back to direct client-side Gemini:', backendErr);
+          console.warn('Backend call failed, falling back to direct client-side AI edge:', backendErr);
         }
       }
 
-      // 2. Direct Client-Side Gemini Edge Synthesis fallback
+      // 2. Direct Client-Side AI Edge Synthesis (Gemini API & Groq LPU API directly from browser)
       if (!assistantContent) {
         const clientChatResult = await generateClientChat({
           query,
@@ -424,6 +444,7 @@ function App() {
           maxTokens: parameters.maxTokens,
           systemPrompt: parameters.systemPrompt,
           apiKey: parameters.geminiApiKey,
+          groqApiKey: parameters.groqApiKey,
           subdomain: activeSubdomain
         });
 
@@ -1056,28 +1077,55 @@ function App() {
                 />
               </div>
 
+              {/* Custom Groq API Key Card (Recommended) */}
+              <div className="p-5 rounded-2xl bg-[#1e1f20] border border-[#a8c7fa]/20 space-y-2 relative overflow-hidden">
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-medium text-white flex items-center gap-2">
+                    <Zap size={16} className="text-[#a8c7fa]" />
+                    Groq API Key (Recommended · 14,400 Free Requests/Day)
+                  </label>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    High Capacity
+                  </span>
+                </div>
+                <input
+                  type="password"
+                  placeholder="gsk_... (paste your Groq key here)"
+                  value={parameters.groqApiKey || ''}
+                  onChange={(e) => setParameters({ ...parameters, groqApiKey: e.target.value })}
+                  className="w-full bg-[#131314] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-[#8ab4f8] font-mono leading-relaxed"
+                />
+                <p className="text-[11px] text-[#8e918f]">
+                  Get your free high-speed Groq key (no credit card required) at{' '}
+                  <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-[#8ab4f8] underline hover:text-white">
+                    console.groq.com/keys
+                  </a>
+                  . Powers Llama 3.3 70B & DeepSeek R1 at ~500 tokens/sec with 14,400 free requests per day.
+                </p>
+              </div>
+
               {/* Custom Gemini API Key Card */}
               <div className="p-5 rounded-2xl bg-[#1e1f20] border border-white/10 space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-sm font-medium text-white flex items-center gap-2">
                     <Sparkles size={16} className="text-[#a8c7fa]" />
-                    Custom Google Gemini API Key (Optional)
+                    Google Gemini API Key (Optional)
                   </label>
                   <span className="text-[11px] text-[#8e918f]">Browser Storage</span>
                 </div>
                 <input
                   type="password"
-                  placeholder="AIzaSy... (leave blank to use smart offline engine)"
+                  placeholder="AIzaSy... (leave blank to use smart offline engine or Groq)"
                   value={parameters.geminiApiKey || ''}
                   onChange={(e) => setParameters({ ...parameters, geminiApiKey: e.target.value })}
                   className="w-full bg-[#131314] border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-[#8ab4f8] font-mono leading-relaxed"
                 />
                 <p className="text-[11px] text-[#8e918f]">
-                  Get a 100% free API key from{' '}
+                  Get a free key from{' '}
                   <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[#8ab4f8] underline hover:text-white">
                     Google AI Studio
                   </a>
-                  . Stored privately on your machine for zero-server direct calls.
+                  . Note: Google limits free accounts to 20 requests/day per project.
                 </p>
               </div>
 

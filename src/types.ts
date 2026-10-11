@@ -7,7 +7,9 @@ export type ModelProvider =
   | 'gemini-pro' 
   | 'gpt-4o-mini' 
   | 'gpt-4o' 
-  | 'deepseek-r1';
+  | 'deepseek-r1'
+  | 'groq-llama-70b'
+  | 'groq-deepseek-r1';
 
 export interface ModelOption {
   id: ModelProvider;
@@ -74,4 +76,5 @@ export interface AISettings {
   maxTokens: number;
   systemPrompt: string;
   geminiApiKey?: string;
+  groqApiKey?: string;
 }

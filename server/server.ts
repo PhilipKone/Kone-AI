@@ -7,7 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
-import { getSubdomainKnowledgeContext, SUBDOMAIN_PROFILES } from './subdomainKnowledge.js';
+import { getSubdomainKnowledgeContext, SUBDOMAIN_PROFILES } from './subdomainKnowledge.ts';
 
 dotenv.config();
 
@@ -127,6 +127,13 @@ const deepseek = process.env.DEEPSEEK_API_KEY && process.env.DEEPSEEK_API_KEY !=
     })
   : null;
 
+const groq = process.env.GROQ_API_KEY && process.env.GROQ_API_KEY !== 'your_groq_api_key_here'
+  ? new OpenAI({
+      apiKey: process.env.GROQ_API_KEY,
+      baseURL: 'https://api.groq.com/openai/v1'
+    })
+  : null;
+
 /* ── Intelligent Offline Fallback Generator ──────────── */
 
 function generateSmartFallback(query: string, providerName: string, subdomain: string = 'all'): string {
@@ -223,8 +230,9 @@ async function executeChatCompletion(params: {
   systemPrompt: string;
   subdomain?: string;
   apiKey?: string;
+  groqApiKey?: string;
 }): Promise<{ content: string; provider: string }> {
-  const { message, history, provider, temperature, maxTokens, systemPrompt, subdomain = 'all', apiKey } = params;
+  const { message, history, provider, temperature, maxTokens, systemPrompt, subdomain = 'all', apiKey, groqApiKey } = params;
 
   // Format past turns for multi-turn conversational context
   const formattedHistory = history.slice(-8).map(h => ({
@@ -291,7 +299,39 @@ async function executeChatCompletion(params: {
     }
   }
 
-  // ── Provider 3: Google Gemini (Default: Gemini 3.8 Flash & Gemini 3.1 Pro) ──
+  // ── Provider 3: Groq (Llama 3.3 70B & DeepSeek R1) ──
+  if (provider === 'groq-llama-70b' || provider === 'groq-deepseek-r1') {
+    const groqKey = groqApiKey || apiKey || process.env.GROQ_API_KEY;
+    const client = groqKey ? new OpenAI({ apiKey: groqKey, baseURL: 'https://api.groq.com/openai/v1' }) : groq;
+    if (!client) {
+      console.warn('Groq API key not configured, returning educational fallback.');
+      return { content: generateSmartFallback(message, 'Groq (Offline)', subdomain), provider };
+    }
+
+    const modelName = provider === 'groq-deepseek-r1' ? 'deepseek-r1-distill-llama-70b' : 'llama-3.3-70b-versatile';
+    try {
+      const messages: any[] = [
+        { role: 'system', content: systemPrompt },
+        ...formattedHistory,
+        { role: 'user', content: message }
+      ];
+
+      const response = await client.chat.completions.create({
+        model: modelName,
+        messages,
+        temperature,
+        max_tokens: maxTokens
+      });
+
+      const content = response.choices[0]?.message?.content || 'No response returned from Groq.';
+      return { content, provider: modelName };
+    } catch (err: any) {
+      console.error('Groq generation error:', err.message);
+      return { content: generateSmartFallback(message, 'Groq', subdomain), provider };
+    }
+  }
+
+  // ── Provider 4: Google Gemini (Default: Gemini 3.8 Flash & Gemini 3.1 Pro) ──
   const activeGenAI = apiKey ? new GoogleGenerativeAI(apiKey) : genAI;
   if (activeGenAI) {
     try {
@@ -378,7 +418,8 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       maxTokens,
       systemPrompt: groundedPrompt,
       subdomain,
-      apiKey: (body as any).geminiApiKey || (body as any).apiKey
+      apiKey: (body as any).geminiApiKey || (body as any).apiKey,
+      groqApiKey: (body as any).groqApiKey
     });
 
     return res.json({
