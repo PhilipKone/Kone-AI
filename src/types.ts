@@ -21,6 +21,8 @@ export interface SubdomainScope {
   id: string;
   name: string;
   icon: string;
+  logoUrl?: string;
+  color?: string;
   url: string;
   tagline: string;
 }

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Amber brand squircle background -->
+  <rect width="92" height="92" x="4" y="4" rx="26" fill="#f59e0b" />
+  
+  <!-- Lucide HardHat Icon (Dark Navy/Slate #090d16) -->
+  <g transform="translate(20, 20) scale(2.5)" stroke="#090d16" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5" />
+    <path d="M14 6a6 6 0 0 1 6 6v3" />
+    <path d="M4 15v-3a6 6 0 0 1 6-6" />
+    <rect x="2" y="15" width="20" height="4" rx="1" />
+  </g>
+</svg>

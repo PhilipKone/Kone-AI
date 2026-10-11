@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#061c15" stop-opacity="0" />
+    </linearGradient>
+    
+    <!-- Filters -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Glow Circle -->
+  <circle cx="256" cy="256" r="220" fill="url(#glowGrad)" />
+
+  <!-- Outer Tech circular ring with dashed paths -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#greenGrad)" stroke-width="4" stroke-opacity="0.3" />
+  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round" stroke-dasharray="100 40 200 40 50 40" filter="url(#glow)" />
+
+  <!-- Inner circular ring -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.1" />
+
+  <!-- Circuit nodes (Agritech connection) -->
+  <g stroke="url(#goldGrad)" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M 256 360 L 256 290 L 330 240 L 330 200" />
+    <path d="M 256 290 L 182 240 L 182 210" />
+  </g>
+  
+  <!-- Circuit node circles -->
+  <circle cx="330" cy="200" r="6" fill="#fbbf24" filter="url(#glow)" />
+  <circle cx="182" cy="210" r="6" fill="#fbbf24" filter="url(#glow)" />
+
+  <!-- Organic Sprout/Leaf (Sustainable Farming) -->
+  <!-- Left Leaf -->
+  <path d="M 256 360 C 220 300, 190 280, 190 220 C 190 170, 240 160, 256 160 C 256 160, 256 360, 256 360 Z" fill="url(#greenGrad)" filter="url(#glow)" />
+  <!-- Right Leaf -->
+  <path d="M 256 360 C 292 300, 322 280, 322 220 C 322 170, 272 160, 256 160 C 256 160, 256 360, 256 360 Z" fill="url(#goldGrad)" />
+  
+  <!-- Central Leaf vein -->
+  <path d="M 256 360 L 256 168" stroke="#ffffff" stroke-width="3" stroke-opacity="0.3" stroke-linecap="round" />
+
+  <!-- Small floating smart-node bubbles -->
+  <circle cx="210" cy="180" r="8" fill="#34d399" filter="url(#glow)" opacity="0.8" />
+  <circle cx="300" cy="170" r="10" fill="#fbbf24" filter="url(#glow)" opacity="0.8" />
+  <circle cx="270" cy="130" r="6" fill="#ffffff" filter="url(#glow)" opacity="0.9" />
+</svg>

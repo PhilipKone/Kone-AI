@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import Sitemap from './components/Sitemap';
 import MarkdownMessage from './components/MarkdownMessage';
 import KoneAILogo from './components/KoneAILogo';
+import SubdomainLogo from './components/SubdomainLogo';
 import { 
   Menu, 
   Settings, 
@@ -27,7 +28,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { synthesizeEducationalRoadmap } from './services/aiSynthesizer';
+import { synthesizeEducationalRoadmap, generateClientChat } from './services/aiSynthesizer';
 import './index.css';
 import { 
   ChatMessage, 
@@ -82,15 +83,15 @@ const MODEL_OPTIONS: ModelOption[] = [
 ];
 
 export const SUBDOMAIN_SCOPES: SubdomainScope[] = [
-  { id: 'all', name: 'All Ecosystem', icon: '🌐', url: 'https://koneacademy.io', tagline: 'Unified Academy Intelligence' },
-  { id: 'kids', name: 'Kone Kids', icon: '👶', url: 'https://kids.koneacademy.io', tagline: 'STEM & Robotics for Ages 6-16' },
-  { id: 'code', name: 'Kone Code', icon: '💻', url: 'https://code.koneacademy.io', tagline: 'Software Engineering & Tracks' },
-  { id: 'consult', name: 'Kone Consult', icon: '💼', url: 'https://consult.koneacademy.io', tagline: 'Enterprise AI & Architecture' },
-  { id: 'digital', name: 'Kone Digital', icon: '🎨', url: 'https://digital.koneacademy.io', tagline: 'UI/UX & Product Design' },
-  { id: 'lab', name: 'Kone Lab', icon: '🔬', url: 'https://lab.koneacademy.io', tagline: 'Hardware R&D & Embedded Systems' },
-  { id: 'shop', name: 'Kone Shop', icon: '🛒', url: 'https://shop.koneacademy.io', tagline: 'Robotics Kits & Components' },
-  { id: 'farms', name: 'Kone Farms', icon: '🌾', url: 'https://farms.koneacademy.io', tagline: 'AgriTech & Smart Irrigation' },
-  { id: 'warp', name: 'Kone Warp', icon: '⚡', url: 'https://warp.koneacademy.io', tagline: 'Cloud Sandboxes & Fast Tooling' }
+  { id: 'all', name: 'All Ecosystem', icon: '🌐', logoUrl: '/logos/logo-circle.svg', color: '#38bdf8', url: 'https://koneacademy.io', tagline: 'Unified Academy Intelligence' },
+  { id: 'kids', name: 'Kone Kids', icon: '👶', logoUrl: '/logos/mascot.svg', color: '#38bdf8', url: 'https://kids.koneacademy.io', tagline: 'STEM & Robotics for Ages 6-16' },
+  { id: 'code', name: 'Kone Code', icon: '💻', logoUrl: '/logos/app-code.svg', color: '#2563eb', url: 'https://code.koneacademy.io', tagline: 'Software Engineering & Tracks' },
+  { id: 'consult', name: 'Kone Consult', icon: '💼', logoUrl: '/logos/app-consult.svg', color: '#7b9fb8', url: 'https://consult.koneacademy.io', tagline: 'Enterprise AI & Architecture' },
+  { id: 'digital', name: 'Kone Digital', icon: '🎨', logoUrl: '/logos/app-digital.svg', color: '#00ffff', url: 'https://digital.koneacademy.io', tagline: 'UI/UX & Product Design' },
+  { id: 'lab', name: 'Kone Lab', icon: '🔬', logoUrl: '/logos/app-lab.svg', color: '#3b82f6', url: 'https://lab.koneacademy.io', tagline: 'Hardware R&D & Embedded Systems' },
+  { id: 'shop', name: 'Kone Shop', icon: '🛒', logoUrl: '/logos/app-shop.svg', color: '#ec4899', url: 'https://shop.koneacademy.io', tagline: 'Robotics Kits & Components' },
+  { id: 'farms', name: 'Kone Farms', icon: '🌾', logoUrl: '/logos/app-farms.svg', color: '#10b981', url: 'https://farms.koneacademy.io', tagline: 'AgriTech & Smart Irrigation' },
+  { id: 'warp', name: 'Kone Warp', icon: '⚡', logoUrl: '/logos/app-warp.svg', color: '#a855f7', url: 'https://warp.koneacademy.io', tagline: 'Cloud Sandboxes & Fast Tooling' }
 ];
 
 export const PROMPTS_BY_SUBDOMAIN: Record<string, Array<{ icon: string; title: string; prompt: string }>> = {
@@ -170,7 +171,7 @@ const DEFAULT_SESSION: ChatSession = {
 /* ── Main App Component ───────────────────────────────── */
 
 function App() {
-  const API_URL = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_ENDPOINT || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:5000' : '');
 
   // Navigation Views: 'chat' | 'knowledge' | 'settings' | 'sitemap'
   const [activeView, setActiveView] = useState<string>('chat');
@@ -183,6 +184,7 @@ function App() {
   // Model Provider Selection & Active Subdomain Scope
   const [activeProvider, setActiveProvider] = useState<ModelProvider>('gemini-3.8-flash');
   const [activeSubdomain, setActiveSubdomain] = useState<string>('all');
+  const [subdomainDropdownOpen, setSubdomainDropdownOpen] = useState<boolean>(false);
 
   // Chat Sessions State (Persisted in localStorage)
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
@@ -211,7 +213,7 @@ function App() {
         return {
           temperature: parsed.temperature ?? 0.7,
           maxTokens: parsed.maxTokens ?? 2048,
-          systemPrompt: parsed.systemPrompt || "You are Kone AI, an advanced, friendly, and knowledgeable educational AI assistant for Kone Code Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
+          systemPrompt: parsed.systemPrompt || "You are Kone AI, an advanced, friendly, and knowledgeable AI assistant for Kone Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI across all academy divisions. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
           geminiApiKey: parsed.geminiApiKey || localStorage.getItem('kone_gemini_api_key') || ''
         };
       }
@@ -221,7 +223,7 @@ function App() {
     return {
       temperature: 0.7,
       maxTokens: 2048,
-      systemPrompt: "You are Kone AI, an advanced, friendly, and knowledgeable educational AI assistant for Kone Code Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
+      systemPrompt: "You are Kone AI, an advanced, friendly, and knowledgeable AI assistant for Kone Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI across all academy divisions. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
       geminiApiKey: typeof localStorage !== 'undefined' ? localStorage.getItem('kone_gemini_api_key') || '' : ''
     };
   });
@@ -400,7 +402,9 @@ function App() {
             subdomain: activeSubdomain,
             temperature: parameters.temperature,
             maxTokens: parameters.maxTokens,
-            systemPrompt: parameters.systemPrompt
+            systemPrompt: parameters.systemPrompt,
+            geminiApiKey: parameters.geminiApiKey,
+            apiKey: parameters.geminiApiKey
           });
           const data = response.data;
           assistantContent = data.content || data.message || '';
@@ -412,18 +416,19 @@ function App() {
 
       // 2. Direct Client-Side Gemini Edge Synthesis fallback
       if (!assistantContent) {
-        const synthesisResult = await synthesizeEducationalRoadmap({
+        const clientChatResult = await generateClientChat({
           query,
           history,
           provider: activeProvider,
           temperature: parameters.temperature,
           maxTokens: parameters.maxTokens,
           systemPrompt: parameters.systemPrompt,
-          apiKey: parameters.geminiApiKey
+          apiKey: parameters.geminiApiKey,
+          subdomain: activeSubdomain
         });
 
-        assistantContent = synthesisResult.message;
-        returnedProvider = (synthesisResult.provider as ModelProvider) || activeProvider;
+        assistantContent = clientChatResult.content;
+        returnedProvider = (clientChatResult.provider as ModelProvider) || activeProvider;
       }
 
       const aiMsg: ChatMessage = {
@@ -486,6 +491,7 @@ function App() {
   };
 
   const activeModelInfo = MODEL_OPTIONS.find(m => m.id === activeProvider) || MODEL_OPTIONS[0];
+  const activeScopeInfo = SUBDOMAIN_SCOPES.find(s => s.id === activeSubdomain) || SUBDOMAIN_SCOPES[0];
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#131314] text-[#e3e3e3]">
@@ -530,13 +536,16 @@ function App() {
             {/* Model Selector Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] border border-white/10 text-xs text-white transition-all shadow-sm"
+                onClick={() => {
+                  setModelDropdownOpen(!modelDropdownOpen);
+                  setSubdomainDropdownOpen(false);
+                }}
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] border border-white/10 text-xs text-white transition-all shadow-sm"
               >
-                <KoneAILogo size={16} variant="glass" />
-                <span className="font-medium">{activeModelInfo.name}</span>
-                <span className="text-[10px] text-[#8e918f] font-mono hidden sm:inline">({activeModelInfo.speed})</span>
-                <ChevronDown size={14} className={`text-[#8e918f] transition-transform duration-200 ${modelDropdownOpen ? 'rotate-180' : ''}`} />
+                <KoneAILogo size={15} variant="glass" />
+                <span className="font-medium text-[11px] sm:text-xs max-w-[70px] sm:max-w-none truncate">{activeModelInfo.name}</span>
+                <span className="text-[10px] text-[#8e918f] font-mono hidden md:inline">({activeModelInfo.speed})</span>
+                <ChevronDown size={13} className={`text-[#8e918f] transition-transform duration-200 ${modelDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Model Dropdown Menu */}
@@ -578,13 +587,73 @@ function App() {
                 </>
               )}
             </div>
+
+            {/* Subdomain Scope Selector Dropdown with Official Logos */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setSubdomainDropdownOpen(!subdomainDropdownOpen);
+                  setModelDropdownOpen(false);
+                }}
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#1e1f20] hover:bg-[#282a2c] border border-white/10 text-xs text-white transition-all shadow-sm"
+                title={`Active Scope: ${activeScopeInfo.name} (${activeScopeInfo.url})`}
+              >
+                <SubdomainLogo subdomainId={activeSubdomain} size={15} />
+                <span className="font-medium text-[11px] sm:text-xs max-w-[65px] sm:max-w-[120px] truncate">{activeScopeInfo.name}</span>
+                <ChevronDown size={13} className={`text-[#8e918f] transition-transform duration-200 ${subdomainDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {subdomainDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-30" 
+                    onClick={() => setSubdomainDropdownOpen(false)} 
+                  />
+                  <div className="absolute left-0 mt-2 w-72 sm:w-80 max-h-[75vh] overflow-y-auto bg-[#1e1f20] border border-white/10 rounded-2xl shadow-2xl z-40 p-2 space-y-1 no-scrollbar">
+                    <div className="px-3 py-1.5 text-[11px] font-semibold text-[#8e918f] tracking-wider uppercase flex items-center justify-between">
+                      <span>Ecosystem Knowledge Scope</span>
+                      <span className="text-[10px] text-[#a8c7fa] font-mono">9 divisions</span>
+                    </div>
+                    {SUBDOMAIN_SCOPES.map((scope) => {
+                      const isSelected = activeSubdomain === scope.id;
+                      return (
+                        <button
+                          key={scope.id}
+                          onClick={() => {
+                            setActiveSubdomain(scope.id);
+                            setSubdomainDropdownOpen(false);
+                            showToast(`Scoping knowledge to ${scope.name}`, 'info');
+                          }}
+                          className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-left transition-colors ${
+                            isSelected 
+                              ? 'bg-[#282a2c] text-white border border-[#8ab4f8]/30' 
+                              : 'hover:bg-white/5 text-[#c4c7c5] hover:text-white'
+                          }`}
+                        >
+                          <SubdomainLogo subdomainId={scope.id} size={22} className="mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-medium truncate">{scope.name}</span>
+                              {isSelected && (
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono">Active</span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-[#8e918f] truncate mt-0.5">{scope.tagline}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Right Header Utilities */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={handleClearCurrentChat}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#c4c7c5] hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5 transition-colors"
+              className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-full text-xs text-[#c4c7c5] hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5 transition-colors"
               title="Clear current conversation"
             >
               <RotateCcw size={14} />
@@ -604,38 +673,6 @@ function App() {
             </button>
           </div>
         </header>
-
-        {/* Subdomain Scope Selector Bar */}
-        <div className="border-b border-white/[0.06] bg-[#161718]/90 backdrop-blur-md px-4 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar z-10 shrink-0">
-          <span className="text-[11px] font-semibold text-[#8e918f] uppercase tracking-wider shrink-0 flex items-center gap-1.5 mr-1">
-            <Sparkles size={12} className="text-[#a8c7fa]" />
-            <span>Scope:</span>
-          </span>
-          {SUBDOMAIN_SCOPES.map((scope) => {
-            const isSelected = activeSubdomain === scope.id;
-            return (
-              <button
-                key={scope.id}
-                onClick={() => {
-                  setActiveSubdomain(scope.id);
-                  showToast(`Scoping AI knowledge to ${scope.name} (${scope.url})`, 'info');
-                }}
-                className={`shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs transition-all ${
-                  isSelected
-                    ? 'bg-[#a8c7fa] text-[#131314] font-semibold shadow-sm'
-                    : 'bg-white/5 hover:bg-white/10 text-[#c4c7c5] hover:text-white border border-white/5'
-                }`}
-                title={`${scope.tagline} • ${scope.url}`}
-              >
-                <span>{scope.icon}</span>
-                <span>{scope.name}</span>
-                {isSelected && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
-                )}
-              </button>
-            );
-          })}
-        </div>
 
         {/* ── View 1: Main Chatbot Stream ──────────────────── */}
         {activeView === 'chat' && (
@@ -674,6 +711,15 @@ function App() {
                               </span>
                             </>
                           )}
+                          {activeSubdomain !== 'all' && (
+                            <>
+                              <span>·</span>
+                              <span className="flex items-center gap-1 px-1.5 py-0.2 rounded bg-white/5 text-[10px] text-[#c4c7c5]">
+                                <SubdomainLogo subdomainId={activeSubdomain} size={11} />
+                                <span>{activeScopeInfo.name}</span>
+                              </span>
+                            </>
+                          )}
                         </div>
                       )}
 
@@ -706,7 +752,7 @@ function App() {
                     <span className="w-2 h-2 rounded-full bg-[#a8c7fa] animate-bounce [animation-delay:0.4s]"></span>
                     <span className="text-xs text-[#8e918f] ml-1 font-mono">
                       Thinking with {activeModelInfo.name}
-                      {activeSubdomain !== 'all' && ` [${SUBDOMAIN_SCOPES.find(s => s.id === activeSubdomain)?.name}]`}...
+                      {activeSubdomain !== 'all' && ` [${activeScopeInfo.name}]`}...
                     </span>
                   </div>
                 </div>
@@ -714,30 +760,68 @@ function App() {
 
               {/* Suggested Prompt Chips on Empty/Fresh Chat */}
               {activeSession.messages.length <= 1 && (
-                <div className="mt-8 pt-4 border-t border-white/[0.06]">
-                  <p className="text-xs font-medium text-[#8e918f] mb-3 text-center">
-                    {activeSubdomain === 'all' 
-                      ? 'Try asking one of these questions to explore the ecosystem:'
-                      : `Explore ${SUBDOMAIN_SCOPES.find(s => s.id === activeSubdomain)?.name || activeSubdomain} curated questions:`}
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {(PROMPTS_BY_SUBDOMAIN[activeSubdomain] || PROMPTS_BY_SUBDOMAIN['all']).map((promptItem, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSendMessage(promptItem.prompt)}
-                        className="p-3.5 rounded-2xl bg-[#1e1f20] hover:bg-[#282a2c] border border-white/[0.06] text-left transition-all hover:border-[#8ab4f8]/30 group"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-base">{promptItem.icon}</span>
-                          <span className="text-xs font-semibold text-white group-hover:text-[#a8c7fa] transition-colors">
-                            {promptItem.title}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-[#8e918f] line-clamp-2">
-                          {promptItem.prompt}
-                        </p>
-                      </button>
-                    ))}
+                <div className="mt-8 pt-4 border-t border-white/[0.06] space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-[#c4c7c5] flex items-center gap-1.5">
+                        <Sparkles size={13} className="text-[#a8c7fa]" />
+                        <span>Filter Prompts by Academy Division:</span>
+                      </p>
+                      <span className="text-[11px] text-[#8e918f] font-mono hidden sm:inline">
+                        Active: {activeScopeInfo.name}
+                      </span>
+                    </div>
+
+                    {/* Subdomain Filter Pills with Official Logos */}
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                      {SUBDOMAIN_SCOPES.map((scope) => {
+                        const isSelected = activeSubdomain === scope.id;
+                        return (
+                          <button
+                            key={scope.id}
+                            onClick={() => {
+                              setActiveSubdomain(scope.id);
+                              showToast(`Focused on ${scope.name}`, 'info');
+                            }}
+                            className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all ${
+                              isSelected
+                                ? 'bg-[#a8c7fa] text-[#131314] font-semibold shadow-md'
+                                : 'bg-[#1e1f20] hover:bg-[#282a2c] text-[#c4c7c5] hover:text-white border border-white/5'
+                            }`}
+                          >
+                            <SubdomainLogo subdomainId={scope.id} size={15} />
+                            <span>{scope.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium text-[#8e918f] mb-2.5">
+                      {activeSubdomain === 'all' 
+                        ? 'Curated questions across the academy ecosystem:'
+                        : `Questions tailored for ${activeScopeInfo.name}:`}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {(PROMPTS_BY_SUBDOMAIN[activeSubdomain] || PROMPTS_BY_SUBDOMAIN['all']).map((promptItem, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleSendMessage(promptItem.prompt)}
+                          className="p-3.5 rounded-2xl bg-[#1e1f20] hover:bg-[#282a2c] border border-white/[0.06] text-left transition-all hover:border-[#8ab4f8]/30 group"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <SubdomainLogo subdomainId={activeSubdomain} size={16} />
+                            <span className="text-xs font-semibold text-white group-hover:text-[#a8c7fa] transition-colors">
+                              {promptItem.title}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#8e918f] line-clamp-2">
+                            {promptItem.prompt}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -746,17 +830,29 @@ function App() {
             </div>
 
             {/* Bottom Sticky Chat Input Bar */}
-            <div className="p-4 md:pb-6 bg-gradient-to-t from-[#131314] via-[#131314] to-transparent">
+            <div className="p-3 sm:p-4 md:pb-6 bg-gradient-to-t from-[#131314] via-[#131314] to-transparent">
               <div className="max-w-4xl w-full mx-auto">
-                <div className="relative gemini-capsule px-3 py-2 flex items-center gap-2 border border-white/10 bg-[#1e1f20] focus-within:border-[#8ab4f8]/60 transition-all">
+                <div className="relative gemini-capsule px-2 sm:px-3 py-2 flex items-center gap-2 border border-white/10 bg-[#1e1f20] focus-within:border-[#8ab4f8]/60 transition-all">
                   
+                  {/* Quick Scope Switcher inside Input Capsule */}
+                  <button
+                    type="button"
+                    onClick={() => setSubdomainDropdownOpen(prev => !prev)}
+                    className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] text-[#c4c7c5] hover:text-white transition-all shrink-0 select-none"
+                    title={`Active Scope: ${activeScopeInfo.name} (${activeScopeInfo.url}) • Tap to switch division`}
+                  >
+                    <SubdomainLogo subdomainId={activeSubdomain} size={15} />
+                    <span className="hidden sm:inline font-medium text-xs">{activeScopeInfo.name}</span>
+                    <ChevronDown size={11} className="text-[#8e918f]" />
+                  </button>
+
                   {/* Multi-line auto-resizing textarea */}
                   <textarea
                     ref={textareaRef}
                     value={inputQuery}
                     onChange={handleTextareaInput}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask Kone AI anything... (Press Enter to send, Shift+Enter for newline)"
+                    placeholder={`Ask Kone AI (${activeScopeInfo.name})... (Press Enter to send)`}
                     rows={1}
                     className="flex-1 max-h-44 bg-transparent border-0 outline-none text-sm text-white placeholder:text-[#8e918f] resize-none px-2 py-1.5 no-scrollbar leading-normal min-h-[36px]"
                   />
@@ -784,7 +880,7 @@ function App() {
                 <div className="flex items-center justify-between mt-2 px-3 text-[11px] text-[#8e918f]">
                   <span className="flex items-center gap-1">
                     <ShieldCheck size={12} className="text-emerald-400" />
-                    <span>Kone Code Academy Educational AI</span>
+                    <span>Kone AI</span>
                   </span>
                   <span>Model: {activeModelInfo.name}</span>
                 </div>
@@ -992,7 +1088,7 @@ function App() {
                     setParameters({
                       temperature: 0.7,
                       maxTokens: 2048,
-                      systemPrompt: "You are Kone AI, an advanced, friendly, and knowledgeable educational AI assistant for Kone Code Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
+                      systemPrompt: "You are Kone AI, an advanced, friendly, and knowledgeable AI assistant for Kone Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI across all academy divisions. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
                       geminiApiKey: ''
                     });
                     showToast('Reset parameters to academy defaults', 'info');

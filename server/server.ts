@@ -7,7 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
-import { getSubdomainKnowledgeContext, SUBDOMAIN_PROFILES } from './subdomainKnowledge.ts';
+import { getSubdomainKnowledgeContext, SUBDOMAIN_PROFILES } from './subdomainKnowledge.js';
 
 dotenv.config();
 
@@ -75,7 +75,7 @@ const SETTINGS_FILE = path.join(__dirname, 'settings.json');
 const DEFAULT_SETTINGS: ServerSettings = {
   temperature: 0.7,
   maxTokens: 2048,
-  systemPrompt: "You are Kone AI, an advanced and friendly educational AI assistant for Kone Code Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
+  systemPrompt: "You are Kone AI, an advanced and friendly AI assistant for Kone Academy. You assist students, creators, and engineers with programming, robotics, electronics, web development, and AI across all academy divisions. Provide clear, accurate, and supportive answers with markdown formatting and well-commented code snippets where helpful.",
   safetyToggles: {
     speedLimiter: true,
     telemetryStream: true,
@@ -129,8 +129,31 @@ const deepseek = process.env.DEEPSEEK_API_KEY && process.env.DEEPSEEK_API_KEY !=
 
 /* ── Intelligent Offline Fallback Generator ──────────── */
 
-function generateSmartFallback(query: string, providerName: string): string {
+function generateSmartFallback(query: string, providerName: string, subdomain: string = 'all'): string {
   const q = query.toLowerCase();
+  
+  // Resolve target subdomain
+  const targetSub = subdomain !== 'all' ? subdomain : 
+    (q.includes('kids') || q.includes('child') || q.includes('scratch') ? 'kids' :
+     q.includes('consult') || q.includes('enterprise') || q.includes('audit') ? 'consult' :
+     q.includes('digital') || q.includes('ui/ux') || q.includes('figma') || q.includes('design') ? 'digital' :
+     q.includes('lab') || q.includes('esp32') || q.includes('telemetry') || q.includes('lora') ? 'lab' :
+     q.includes('shop') || q.includes('store') || q.includes('kit') || q.includes('buy') ? 'shop' :
+     q.includes('farm') || q.includes('irrigation') || q.includes('agri') ? 'farms' :
+     q.includes('warp') || q.includes('sandbox') || q.includes('simulator') ? 'warp' :
+     q.includes('code') || q.includes('react') || q.includes('typescript') || q.includes('track') ? 'code' : 'all');
+
+  const profile = SUBDOMAIN_PROFILES[targetSub] || SUBDOMAIN_PROFILES['all'];
+
+  if (targetSub !== 'all') {
+    return `### 🌟 Kone AI • ${profile.name} (${profile.url})\n\n` +
+      `**${profile.tagline}**\n\n` +
+      `${profile.description}\n\n` +
+      `#### 🚀 Core Offerings & Curriculum Tracks:\n` +
+      profile.keyOfferings.map(o => `* **${o.split(':')[0]}:** ${o.split(':')[1] || ''}`).join('\n') + `\n\n` +
+      `#### 🎯 Target Audience:\n${profile.targetAudience}\n\n` +
+      `> 🔗 **Direct Portal:** [Open ${profile.name}](${profile.url}) to access live modules, sandboxes, and documentation.`;
+  }
 
   if (q.includes('robot') || q.includes('arduino') || q.includes('motor') || q.includes('pwm')) {
     return `### Kone AI Robotics Assistant (${providerName})\n\nGreat question regarding robotics and microcontroller control! Here is a structured approach to building and controlling DC motors with an Arduino:\n\n` +
@@ -157,30 +180,36 @@ function generateSmartFallback(query: string, providerName: string): string {
       `  delay(2000);\n` +
       `}\n` +
       `\`\`\`\n\n` +
-      `*Tip: Connect your API keys in the server \`.env\` file (e.g. \`GEMINI_API_KEY\`) to enable live model streaming!*`;
+      `*Explore hardware kits on [shop.koneacademy.io](https://shop.koneacademy.io) or lab experiments on [lab.koneacademy.io](https://lab.koneacademy.io).*`;
   }
 
-  if (q.includes('python') || q.includes('code') || q.includes('loop') || q.includes('function')) {
-    return `### Kone AI Code Companion (${providerName})\n\nHere is a quick solution for your programming inquiry:\n\n` +
-      `\`\`\`python\n` +
-      `# Kone AI Educational Scaffolding\n` +
-      `def process_data(items):\n` +
-      `    \"\"\"Clean, filter, and process data stream.\"\"\"\n` +
-      `    return [item.strip().title() for item in items if len(item) > 2]\n\n` +
-      `# Example usage\n` +
-      `sample = [\" python \", \"ai\", \"robotics\", \"iot\"]\n` +
-      `print(process_data(sample)) # ['Python', 'Robotics', 'Iot']\n` +
+  if (q.includes('python') || q.includes('code') || q.includes('loop') || q.includes('function') || q.includes('react') || q.includes('typescript')) {
+    return `### Kone AI Code Companion (${providerName})\n\nHere is a clean, modern TypeScript solution tailored to the Kone Code curriculum:\n\n` +
+      `\`\`\`typescript\n` +
+      `// Kone Code Academy - Type-Safe Data Pipeline\n` +
+      `interface LearningTrack {\n` +
+      `  id: string;\n` +
+      `  title: string;\n` +
+      `  level: 'Beginner' | 'Intermediate' | 'Advanced';\n` +
+      `}\n\n` +
+      `export function filterTracks(tracks: LearningTrack[], targetLevel: string): LearningTrack[] {\n` +
+      `  return tracks.filter(t => t.level === targetLevel);\n` +
+      `}\n` +
       `\`\`\`\n\n` +
-      `Let me know if you would like me to explain this in detail, convert it to TypeScript/C++, or add error handling!`;
+      `Explore software roadmaps on [code.koneacademy.io](https://code.koneacademy.io).`;
   }
 
-  return `Hello! I am **Kone AI**, your educational assistant at Kone Code Academy.\n\n` +
-    `I can help you with:\n` +
-    `- **Software Development:** Python, JavaScript, TypeScript, React, Node.js\n` +
-    `- **Robotics & Hardware:** Arduino, ESP32, Raspberry Pi, sensors, motors, and schematics\n` +
-    `- **AI & Machine Learning:** Neural networks, LLMs, prompt engineering, and computer vision\n` +
-    `- **Curriculum Guidance:** Step-by-step roadmaps from beginner to professional engineer\n\n` +
-    `How can I assist your learning journey today?`;
+  return `### Welcome to Kone AI • Unified Ecosystem Intelligence\n\n` +
+    `I am fine-tuned across all **9 subdomains** of the Kone Academy ecosystem:\n\n` +
+    `- 👶 **Kone Kids (kids.koneacademy.io):** STEM, robotics, and creative coding (Ages 6-16)\n` +
+    `- 💻 **Kone Code (code.koneacademy.io):** Full-stack TypeScript, React, and backend tracks\n` +
+    `- 💼 **Kone Consult (consult.koneacademy.io):** Enterprise AI advisory and systems architecture\n` +
+    `- 🎨 **Kone Digital (digital.koneacademy.io):** UI/UX product design, design systems, and branding\n` +
+    `- 🔬 **Kone Lab (lab.koneacademy.io):** Hardware R&D, ESP32 telemetry, and embedded systems\n` +
+    `- 🛒 **Kone Shop (shop.koneacademy.io):** Official robotics kits, sensors, and school bundles\n` +
+    `- 🌾 **Kone Farms (farms.koneacademy.io):** Smart agriculture and automated IoT irrigation\n` +
+    `- ⚡ **Kone Warp (warp.koneacademy.io):** Virtual simulators and cloud browser sandboxes\n\n` +
+    `Select any subdomain pill above or ask a targeted question about any division!`;
 }
 
 /* ── LLM Chat Completion Handler ────────────────────── */
@@ -192,8 +221,10 @@ async function executeChatCompletion(params: {
   temperature: number;
   maxTokens: number;
   systemPrompt: string;
+  subdomain?: string;
+  apiKey?: string;
 }): Promise<{ content: string; provider: string }> {
-  const { message, history, provider, temperature, maxTokens, systemPrompt } = params;
+  const { message, history, provider, temperature, maxTokens, systemPrompt, subdomain = 'all', apiKey } = params;
 
   // Format past turns for multi-turn conversational context
   const formattedHistory = history.slice(-8).map(h => ({
@@ -205,7 +236,7 @@ async function executeChatCompletion(params: {
   if (provider.startsWith('openai') || provider === 'gpt-4o' || provider === 'gpt-4o-mini') {
     if (!openai) {
       console.warn('OpenAI API key not configured, returning smart educational fallback.');
-      return { content: generateSmartFallback(message, 'GPT-4o (Fallback)'), provider: 'gpt-4o-mini' };
+      return { content: generateSmartFallback(message, 'GPT-4o (Fallback)', subdomain), provider: 'gpt-4o-mini' };
     }
 
     try {
@@ -227,7 +258,7 @@ async function executeChatCompletion(params: {
       return { content, provider: modelName };
     } catch (err: any) {
       console.error('OpenAI generation error:', err.message);
-      return { content: generateSmartFallback(message, 'OpenAI'), provider: 'gpt-4o' };
+      return { content: generateSmartFallback(message, 'OpenAI', subdomain), provider: 'gpt-4o' };
     }
   }
 
@@ -235,7 +266,7 @@ async function executeChatCompletion(params: {
   if (provider === 'deepseek-r1') {
     if (!deepseek) {
       console.warn('DeepSeek API key not configured, returning smart educational fallback.');
-      return { content: generateSmartFallback(message, 'DeepSeek R1 (Fallback)'), provider: 'deepseek-r1' };
+      return { content: generateSmartFallback(message, 'DeepSeek R1 (Fallback)', subdomain), provider: 'deepseek-r1' };
     }
 
     try {
@@ -256,16 +287,17 @@ async function executeChatCompletion(params: {
       return { content, provider: 'deepseek-r1' };
     } catch (err: any) {
       console.error('DeepSeek generation error:', err.message);
-      return { content: generateSmartFallback(message, 'DeepSeek R1'), provider: 'deepseek-r1' };
+      return { content: generateSmartFallback(message, 'DeepSeek R1', subdomain), provider: 'deepseek-r1' };
     }
   }
 
-  // ── Provider 3: Google Gemini (Default) ──
-  if (genAI) {
+  // ── Provider 3: Google Gemini (Default: Gemini 3.8 Flash & Gemini 3.1 Pro) ──
+  const activeGenAI = apiKey ? new GoogleGenerativeAI(apiKey) : genAI;
+  if (activeGenAI) {
     try {
       const modelCandidates = (provider === 'gemini-3.1-pro' || provider === 'gemini-pro')
-        ? ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-1.5-pro']
-        : ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+        ? ['gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-2.5-flash']
+        : ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
 
       const geminiContents = formattedHistory.map(h => ({
         role: h.role === 'assistant' ? 'model' : 'user',
@@ -274,12 +306,12 @@ async function executeChatCompletion(params: {
       geminiContents.push({ role: 'user', parts: [{ text: message }] });
 
       let responseText: string | null = null;
-      let usedModel = 'gemini-flash';
+      let usedModel = provider === 'gemini-3.1-pro' ? 'Gemini 3.1 Pro' : 'Gemini 3.8 Flash';
       let lastErr: any = null;
 
       for (const modelName of modelCandidates) {
         try {
-          const model = genAI.getGenerativeModel({
+          const model = activeGenAI.getGenerativeModel({
             model: modelName,
             generationConfig: {
               temperature,
@@ -309,12 +341,13 @@ async function executeChatCompletion(params: {
       }
     } catch (err: any) {
       console.warn('Gemini generation notice:', err.message);
-      return { content: generateSmartFallback(message, 'Gemini Flash'), provider: 'gemini-flash' };
+      const displayProvider = provider === 'gemini-3.1-pro' ? 'Gemini 3.1 Pro' : 'Gemini 3.8 Flash';
+      return { content: generateSmartFallback(message, displayProvider, subdomain), provider: displayProvider };
     }
   }
 
   // Fallback if no engine clients are configured
-  return { content: generateSmartFallback(message, 'Kone AI Core'), provider: 'kone-ai-core' };
+  return { content: generateSmartFallback(message, 'Kone AI Core', subdomain), provider: 'kone-ai-core' };
 }
 
 /* ── API Endpoints ────────────────────────────────────── */
@@ -343,7 +376,9 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       provider,
       temperature,
       maxTokens,
-      systemPrompt: groundedPrompt
+      systemPrompt: groundedPrompt,
+      subdomain,
+      apiKey: (body as any).geminiApiKey || (body as any).apiKey
     });
 
     return res.json({

@@ -237,7 +237,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         {(isMobileMode || !collapsed) && (
           <div className="pt-2 px-3 text-[11px] text-[#8e918f] flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span>Kone Code Academy · AI Engine</span>
+            <span>Kone Academy · AI Engine</span>
           </div>
         )}
       </div>
