@@ -127,7 +127,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
       if (token.startsWith('**') && token.endsWith('**') && token.length > 3) {
         return (
           <strong key={tIdx} className="font-semibold text-white">
-            {token.slice(2, -2)}
+            {renderInlineFormatting(token.slice(2, -2))}
           </strong>
         );
       }
@@ -137,7 +137,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
           (token.startsWith('_') && token.endsWith('_') && token.length > 2)) {
         return (
           <em key={tIdx} className="italic text-[#d0d3d5]">
-            {token.slice(1, -1)}
+            {renderInlineFormatting(token.slice(1, -1))}
           </em>
         );
       }
