@@ -1,0 +1,22 @@
+# Kone AI
+
+> Specialized neural architectures, cognitive automation agents, and domain-adapted machine learning research by Kone Academy.
+
+Kone AI investigates and implements production-grade artificial intelligence systems, multi-agent workflows, computer vision pipelines, and intelligent decision systems across the 11 divisions of the Kone ecosystem.
+
+## Research Verticals & Capabilities
+
+- **Domain-Specialized LLM Orchestration**: Context-grounded language models with structured tool calling (WebMCP).
+- **Computer Vision Diagnostics**: Real-time OpenCV telemetry pipelines for vehicle obstacle detection (Kone Warp) and multispectral crop analysis (Kone Farms).
+- **Industrial Reinforcement Learning**: Adaptive control loops for solar micro-irrigation valves and smart IoT grid management (Kone Lab).
+- **Interactive Mission Simulation**: Multi-scenario agentic problem-solving sandbox with dynamic telemetry simulation.
+
+## Parent Ecosystem & Federated Links
+
+- [Kone Academy (Hub)](https://www.koneacademy.io/): Central learning portal and technology group.
+- [Kone Technologies (Parent)](https://tech.koneacademy.io/): Corporate holding organization.
+- [Kone Code (Engineering)](https://code.koneacademy.io/): Backend model serving, APIs, and web infrastructure.
+- [Kone Lab (Hardware)](https://lab.koneacademy.io/): Edge ML inference on micro-controllers and embedded sensors.
+- [Kone Farms (Agritech)](https://farms.koneacademy.io/): Predictive crop yield modeling and soil moisture forecasting.
+- [Kone Warp (Mobility)](https://warp.koneacademy.io/): Autonomous routing algorithms and computer vision diagnostics.
+- [Kone Consult (Research)](https://consult.koneacademy.io/): Theoretical statistical models and academic publication.
