@@ -1,0 +1,57 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Container background: circle -->
+  <circle cx="100" cy="100" r="95" fill="#2563eb" />
+
+  <!-- Left "L" bracket -->
+  <path
+    d="M 55 60 L 55 140 L 75 140"
+    stroke="white"
+    stroke-width="12"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  
+  <!-- Right "7" bracket -->
+  <path
+    d="M 125 60 L 145 60 L 145 140"
+    stroke="white"
+    stroke-width="12"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+
+  <!-- Water droplet in the center -->
+  <g>
+    <!-- Main droplet gradient -->
+    <defs>
+      <linearGradient
+        id="droplet-gradient-l7"
+        x1="0%"
+        y1="0%"
+        x2="0%"
+        y2="100%"
+      >
+        <stop offset="0%" stop-color="white" stop-opacity="0.9" />
+        <stop offset="100%" stop-color="white" stop-opacity="0.6" />
+      </linearGradient>
+    </defs>
+
+    <!-- Teardrop shape -->
+    <path
+      d="M 100 65 C 100 65, 85 85, 85 100 C 85 110, 91.7 118, 100 118 C 108.3 118, 115 110, 115 100 C 115 85, 100 65, 100 65 Z"
+      fill="url(#droplet-gradient-l7)"
+    />
+
+    <!-- White crescent highlight (notch) -->
+    <ellipse
+      cx="107"
+      cy="108"
+      rx="5"
+      ry="7"
+      fill="rgba(255, 255, 255, 0.5)"
+      transform="rotate(-25 107 108)"
+    />
+  </g>
+</svg>
