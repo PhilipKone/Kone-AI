@@ -18,7 +18,7 @@ export const SUBDOMAIN_PROFILES: Record<string, SubdomainProfile> = {
   all: {
     id: 'all',
     name: 'All Academy Subdomains',
-    url: 'https://koneacademy.io',
+    url: 'https://academy.codkon.com',
     tagline: 'Comprehensive Kone Academy Global Ecosystem',
     description: 'The complete multi-domain educational and technology ecosystem spanning kids robotics, pro coding, enterprise consulting, digital agency, hardware lab, e-commerce shop, and agritech.',
     keyOfferings: [
@@ -37,7 +37,7 @@ export const SUBDOMAIN_PROFILES: Record<string, SubdomainProfile> = {
   kids: {
     id: 'kids',
     name: 'Kone Kids',
-    url: 'https://kids.koneacademy.io',
+    url: 'https://kids.codkon.com',
     tagline: 'STEM, Robotics & Creative Coding for Young Minds (Ages 6-16)',
     description: 'Specialized youth academy focused on making robotics, electronics, and coding joyful and intuitive through hands-on tactile learning, block programming, and gamified challenges.',
     keyOfferings: [
@@ -57,7 +57,7 @@ export const SUBDOMAIN_PROFILES: Record<string, SubdomainProfile> = {
   code: {
     id: 'code',
     name: 'Kone Code',
-    url: 'https://code.koneacademy.io',
+    url: 'https://code.codkon.com',
     tagline: 'Professional Software Engineering & Full-Stack Development',
     description: 'Rigorous, industry-grade software engineering curriculum covering modern web development, backend architectures, data structures, algorithms, and cloud deployment.',
     keyOfferings: [
@@ -77,7 +77,7 @@ export const SUBDOMAIN_PROFILES: Record<string, SubdomainProfile> = {
   consult: {
     id: 'consult',
     name: 'Kone Consult',
-    url: 'https://consult.koneacademy.io',
+    url: 'https://consult.codkon.com',
     tagline: 'Enterprise Technology Consulting & AI Transformation',
     description: 'Strategic advisory and engineering consulting partner for businesses seeking to integrate custom artificial intelligence, cloud architectures, and IoT hardware solutions.',
     keyOfferings: [
@@ -97,7 +97,7 @@ export const SUBDOMAIN_PROFILES: Record<string, SubdomainProfile> = {
   digital: {
     id: 'digital',
     name: 'Kone Digital',
-    url: 'https://digital.koneacademy.io',
+    url: 'https://digital.codkon.com',
     tagline: 'Full-Service Digital Product Studio & Creative Agency',
     description: 'High-craft design and digital production studio crafting world-class digital products, brand identities, UI/UX systems, and interactive web experiences.',
     keyOfferings: [
@@ -117,7 +117,7 @@ export const SUBDOMAIN_PROFILES: Record<string, SubdomainProfile> = {
   lab: {
     id: 'lab',
     name: 'Kone Lab',
-    url: 'https://lab.koneacademy.io',
+    url: 'https://lab.codkon.com',
     tagline: 'Hardware Innovation, R&D & Experimental Prototyping',
     description: 'Experimental laboratory advancing embedded electronics, physical computing, autonomous mobile robotics, and cutting-edge sensor integration.',
     keyOfferings: [
@@ -137,7 +137,7 @@ export const SUBDOMAIN_PROFILES: Record<string, SubdomainProfile> = {
   shop: {
     id: 'shop',
     name: 'Kone Shop',
-    url: 'https://shop.koneacademy.io',
+    url: 'https://shop.codkon.com',
     tagline: 'Official Hardware Kits, Components & Academy Gear',
     description: 'Curated store offering verified educational robotics kits, microcontroller starter packs, electronic components, sensors, and academy accessories.',
     keyOfferings: [
@@ -157,7 +157,7 @@ export const SUBDOMAIN_PROFILES: Record<string, SubdomainProfile> = {
   farms: {
     id: 'farms',
     name: 'Kone Farms',
-    url: 'https://farms.koneacademy.io',
+    url: 'https://farms.codkon.com',
     tagline: 'Precision AgriTech & Sustainable Smart Agriculture',
     description: 'Pioneering agricultural technology, automated greenhouse monitoring, smart solar irrigation, and computer vision crop health assessment.',
     keyOfferings: [
@@ -176,7 +176,7 @@ export const SUBDOMAIN_PROFILES: Record<string, SubdomainProfile> = {
   warp: {
     id: 'warp',
     name: 'Kone Warp',
-    url: 'https://warp.koneacademy.io',
+    url: 'https://warp.codkon.com',
     tagline: 'High-Velocity Developer Tooling & Sandboxes',
     description: 'Instant cloud dev environments, rapid compilation runners, and browser-based firmware simulators designed to eliminate setup friction for learners.',
     keyOfferings: [
@@ -215,7 +215,7 @@ export function getSubdomainKnowledgeContext(subdomainId = 'all'): string {
 
   context += `\nGuidelines for Kone AI Assistant:\n`;
   context += `1. When users ask questions specific to any subdomain (e.g. "What kits are in the shop?", "How do kids learn robotics?", "What consulting services exist?"), answer with exact knowledge of that division.\n`;
-  context += `2. Provide clear, accurate direct links to the relevant subdomain (e.g. [Kone Shop](https://shop.koneacademy.io)).\n`;
+  context += `2. Provide clear, accurate direct links to the relevant subdomain (e.g. [Kone Shop](https://shop.codkon.com)).\n`;
   context += `3. Maintain a warm, encouraging, and technically rigorous educational tone.\n`;
 
   return context;

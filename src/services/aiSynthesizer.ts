@@ -139,14 +139,14 @@ export function generateClientFallbackText(query: string, providerName: string =
 
   return `### Welcome to Kone AI • Unified Ecosystem Intelligence (${providerName})\n\n` +
     `I am fine-tuned across all **9 subdomains** of the Kone Academy ecosystem:\n\n` +
-    `- 👶 **Kone Kids (kids.koneacademy.io):** STEM, robotics, and creative coding (Ages 6-16)\n` +
-    `- 💻 **Kone Code (code.koneacademy.io):** Full-stack TypeScript, React, and backend tracks\n` +
-    `- 💼 **Kone Consult (consult.koneacademy.io):** Enterprise AI advisory and systems architecture\n` +
-    `- 🎨 **Kone Digital (digital.koneacademy.io):** UI/UX product design, design systems, and branding\n` +
-    `- 🔬 **Kone Lab (lab.koneacademy.io):** Hardware R&D, ESP32 telemetry, and embedded systems\n` +
-    `- 🛒 **Kone Shop (shop.koneacademy.io):** Official robotics kits, sensors, and school bundles\n` +
-    `- 🌾 **Kone Farms (farms.koneacademy.io):** Smart agriculture and automated IoT irrigation\n` +
-    `- ⚡ **Kone Warp (warp.koneacademy.io):** Virtual simulators and cloud browser sandboxes\n\n` +
+    `- 👶 **Kone Kids (kids.codkon.com):** STEM, robotics, and creative coding (Ages 6-16)\n` +
+    `- 💻 **Kone Code (code.codkon.com):** Full-stack TypeScript, React, and backend tracks\n` +
+    `- 💼 **Kone Consult (consult.codkon.com):** Enterprise AI advisory and systems architecture\n` +
+    `- 🎨 **Kone Digital (digital.codkon.com):** UI/UX product design, design systems, and branding\n` +
+    `- 🔬 **Kone Lab (lab.codkon.com):** Hardware R&D, ESP32 telemetry, and embedded systems\n` +
+    `- 🛒 **Kone Shop (shop.codkon.com):** Official robotics kits, sensors, and school bundles\n` +
+    `- 🌾 **Kone Farms (farms.codkon.com):** Smart agriculture and automated IoT irrigation\n` +
+    `- ⚡ **Kone Warp (warp.codkon.com):** Virtual simulators and cloud browser sandboxes\n\n` +
     `Select any subdomain pill above or ask a targeted question about any division!`;
 }
 

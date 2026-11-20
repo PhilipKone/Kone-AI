@@ -97,15 +97,15 @@ const MODEL_OPTIONS: ModelOption[] = [
 ];
 
 export const SUBDOMAIN_SCOPES: SubdomainScope[] = [
-  { id: 'all', name: 'All Ecosystem', icon: '🌐', logoUrl: '/logos/logo-circle.svg', color: '#38bdf8', url: 'https://koneacademy.io', tagline: 'Unified Academy Intelligence' },
-  { id: 'kids', name: 'Kone Kids', icon: '👶', logoUrl: '/logos/mascot.svg', color: '#38bdf8', url: 'https://kids.koneacademy.io', tagline: 'STEM & Robotics for Ages 6-16' },
-  { id: 'code', name: 'Kone Code', icon: '💻', logoUrl: '/logos/app-code.svg', color: '#2563eb', url: 'https://code.koneacademy.io', tagline: 'Software Engineering & Tracks' },
-  { id: 'consult', name: 'Kone Consult', icon: '💼', logoUrl: '/logos/app-consult.svg', color: '#7b9fb8', url: 'https://consult.koneacademy.io', tagline: 'Enterprise AI & Architecture' },
-  { id: 'digital', name: 'Kone Digital', icon: '🎨', logoUrl: '/logos/app-digital.svg', color: '#00ffff', url: 'https://digital.koneacademy.io', tagline: 'UI/UX & Product Design' },
-  { id: 'lab', name: 'Kone Lab', icon: '🔬', logoUrl: '/logos/app-lab.svg', color: '#3b82f6', url: 'https://lab.koneacademy.io', tagline: 'Hardware R&D & Embedded Systems' },
-  { id: 'shop', name: 'Kone Shop', icon: '🛒', logoUrl: '/logos/app-shop.svg', color: '#ec4899', url: 'https://shop.koneacademy.io', tagline: 'Robotics Kits & Components' },
-  { id: 'farms', name: 'Kone Farms', icon: '🌾', logoUrl: '/logos/app-farms.svg', color: '#10b981', url: 'https://farms.koneacademy.io', tagline: 'AgriTech & Smart Irrigation' },
-  { id: 'warp', name: 'Kone Warp', icon: '⚡', logoUrl: '/logos/app-warp.svg', color: '#a855f7', url: 'https://warp.koneacademy.io', tagline: 'Cloud Sandboxes & Fast Tooling' }
+  { id: 'all', name: 'All Ecosystem', icon: '🌐', logoUrl: '/logos/logo-circle.svg', color: '#38bdf8', url: 'https://academy.codkon.com', tagline: 'Unified Academy Intelligence' },
+  { id: 'kids', name: 'Kone Kids', icon: '👶', logoUrl: '/logos/mascot.svg', color: '#38bdf8', url: 'https://kids.codkon.com', tagline: 'STEM & Robotics for Ages 6-16' },
+  { id: 'code', name: 'Kone Code', icon: '💻', logoUrl: '/logos/app-code.svg', color: '#2563eb', url: 'https://code.codkon.com', tagline: 'Software Engineering & Tracks' },
+  { id: 'consult', name: 'Kone Consult', icon: '💼', logoUrl: '/logos/app-consult.svg', color: '#7b9fb8', url: 'https://consult.codkon.com', tagline: 'Enterprise AI & Architecture' },
+  { id: 'digital', name: 'Kone Digital', icon: '🎨', logoUrl: '/logos/app-digital.svg', color: '#00ffff', url: 'https://digital.codkon.com', tagline: 'UI/UX & Product Design' },
+  { id: 'lab', name: 'Kone Lab', icon: '🔬', logoUrl: '/logos/app-lab.svg', color: '#3b82f6', url: 'https://lab.codkon.com', tagline: 'Hardware R&D & Embedded Systems' },
+  { id: 'shop', name: 'Kone Shop', icon: '🛒', logoUrl: '/logos/app-shop.svg', color: '#ec4899', url: 'https://shop.codkon.com', tagline: 'Robotics Kits & Components' },
+  { id: 'farms', name: 'Kone Farms', icon: '🌾', logoUrl: '/logos/app-farms.svg', color: '#10b981', url: 'https://farms.codkon.com', tagline: 'AgriTech & Smart Irrigation' },
+  { id: 'warp', name: 'Kone Warp', icon: '⚡', logoUrl: '/logos/app-warp.svg', color: '#a855f7', url: 'https://warp.codkon.com', tagline: 'Cloud Sandboxes & Fast Tooling' }
 ];
 
 export const PROMPTS_BY_SUBDOMAIN: Record<string, Array<{ icon: string; title: string; prompt: string }>> = {
@@ -116,25 +116,25 @@ export const PROMPTS_BY_SUBDOMAIN: Record<string, Array<{ icon: string; title: s
     { icon: '🛒', title: 'Shop Hardware Kits', prompt: 'What educational robotics kits and microcontroller packs are available in the Kone Shop?' }
   ],
   kids: [
-    { icon: '🤖', title: 'Robotics for Age 8-12', prompt: 'What hands-on robotics courses and projects are available on kids.koneacademy.io for ages 8-12?' },
+    { icon: '🤖', title: 'Robotics for Age 8-12', prompt: 'What hands-on robotics courses and projects are available on kids.codkon.com for ages 8-12?' },
     { icon: '🎮', title: 'Scratch to Python Path', prompt: 'How does Kone Kids transition young learners from block programming to text-based Python?' },
     { icon: '🚗', title: 'Obstacle-Avoidance Rover', prompt: 'Explain the obstacle-avoidance robot car project taught in the Kone Kids robotics curriculum.' },
     { icon: '🧠', title: 'AI for Kids Basics', prompt: 'How does Kone Kids teach artificial intelligence and computer vision to young students?' }
   ],
   code: [
-    { icon: '⚡', title: 'TypeScript & React Roadmap', prompt: 'What is the full-stack TypeScript and React curriculum roadmap on code.koneacademy.io?' },
+    { icon: '⚡', title: 'TypeScript & React Roadmap', prompt: 'What is the full-stack TypeScript and React curriculum roadmap on code.codkon.com?' },
     { icon: '🏗️', title: 'Backend APIs & Systems', prompt: 'How does Kone Code teach backend REST/GraphQL microservices architecture?' },
     { icon: '🎯', title: 'Technical Interview Prep', prompt: 'Can you give me an algorithm practice problem from the Kone Code interview curriculum?' },
     { icon: '🐳', title: 'Docker & CI/CD Mastery', prompt: 'Explain the containerization and automated deployment pipeline modules on Kone Code.' }
   ],
   consult: [
-    { icon: '💼', title: 'Enterprise AI Advisory', prompt: 'What custom generative AI and LLM consulting services does consult.koneacademy.io provide?' },
+    { icon: '💼', title: 'Enterprise AI Advisory', prompt: 'What custom generative AI and LLM consulting services does consult.codkon.com provide?' },
     { icon: '☁️', title: 'Cloud Architecture Modernization', prompt: 'How does Kone Consult handle enterprise cloud migrations and digital transformation?' },
     { icon: '🛡️', title: 'IoT Architecture Audits', prompt: 'What does a security and scalability audit for industrial IoT look like at Kone Consult?' },
     { icon: '📊', title: 'Data Strategy & Pipelines', prompt: 'How does Kone Consult design real-time data streaming architectures for enterprises?' }
   ],
   digital: [
-    { icon: '🎨', title: 'UI/UX Design Process', prompt: 'What is the product design and user journey methodology used by digital.koneacademy.io?' },
+    { icon: '🎨', title: 'UI/UX Design Process', prompt: 'What is the product design and user journey methodology used by digital.codkon.com?' },
     { icon: '✨', title: 'Design Systems & Tokens', prompt: 'How does Kone Digital construct scalable Figma design systems and frontend tokens?' },
     { icon: '📱', title: 'Responsive Mobile Experience', prompt: 'What are the principles Kone Digital uses for high-conversion responsive web interfaces?' },
     { icon: '🚀', title: 'Brand Identity Design', prompt: 'What brand identity deliverables does Kone Digital produce for tech startups?' }
@@ -146,17 +146,17 @@ export const PROMPTS_BY_SUBDOMAIN: Record<string, Array<{ icon: string; title: s
     { icon: '🔌', title: 'Custom PCB Schematic Review', prompt: 'What design rules are required for custom motor driver PCB layouts in Kone Lab?' }
   ],
   shop: [
-    { icon: '📦', title: 'Kone Robotics Starter Kit', prompt: 'What components and documentation are included in the Kone Robotics Starter Kit on shop.koneacademy.io?' },
+    { icon: '📦', title: 'Kone Robotics Starter Kit', prompt: 'What components and documentation are included in the Kone Robotics Starter Kit on shop.codkon.com?' },
     { icon: '🎛️', title: 'Sensor Packs & Shields', prompt: 'Which sensor expansion packs and microcontroller shields are available in the Kone Shop?' },
     { icon: '🔋', title: 'Power & Battery Safety', prompt: 'What 18650 LiPo battery holders with BMS protection are sold in the Kone Shop?' },
     { icon: '🚚', title: 'Ordering & School Bundles', prompt: 'How do schools and clubs purchase bulk classroom kits from the Kone Shop?' }
   ],
   farms: [
-    { icon: '🌱', title: 'Smart Irrigation Telemetry', prompt: 'How does farms.koneacademy.io monitor soil moisture and automate irrigation valves?' },
+    { icon: '🌱', title: 'Smart Irrigation Telemetry', prompt: 'How does farms.codkon.com monitor soil moisture and automate irrigation valves?' },
     { icon: '☀️', title: 'Solar Powered Off-Grid IoT', prompt: 'Explain the solar power management and battery telemetry used by Kone Farms.' }
   ],
   warp: [
-    { icon: '⚡', title: 'Virtual Hardware Simulator', prompt: 'Can I simulate Arduino and ESP32 code on warp.koneacademy.io without physical hardware?' },
+    { icon: '⚡', title: 'Virtual Hardware Simulator', prompt: 'Can I simulate Arduino and ESP32 code on warp.codkon.com without physical hardware?' },
     { icon: '🚀', title: 'Instant Cloud Compilers', prompt: 'How does Kone Warp run zero-configuration browser code sandboxes for students?' }
   ]
 };
@@ -168,7 +168,7 @@ export const SUGGESTED_PROMPTS = PROMPTS_BY_SUBDOMAIN['all'];
 const INITIAL_WELCOME_MESSAGE: ChatMessage = {
   id: 'msg-welcome',
   role: 'assistant',
-  content: `### Welcome to Kone AI! 👋\n\nI am your intelligent educational assistant fine-tuned on the **Kone Academy Ecosystem**.\n\nI have complete knowledge across our academy subdomains:\n- **Kone Kids (kids.koneacademy.io):** STEM, robotics, and creative coding for ages 6–16\n- **Kone Code (code.koneacademy.io):** Professional software engineering, React, TypeScript, and full-stack tracks\n- **Kone Consult (consult.koneacademy.io):** Enterprise AI deployment, architecture audits, and digital transformation\n- **Kone Digital (digital.koneacademy.io):** UI/UX product design, branding, and creative interactive web\n- **Kone Lab (lab.koneacademy.io):** Hardware R&D, embedded firmware, IoT sensor telemetry, and PID control\n- **Kone Shop (shop.koneacademy.io):** Educational robotics kits, microcontroller boards, and electronics\n- **Kone Farms & Kone Warp:** Smart agriculture and instant browser sandboxes\n\nSelect any subdomain above to focus your inquiries, or ask me anything directly!`,
+  content: `### Welcome to Kone AI! 👋\n\nI am your intelligent educational assistant fine-tuned on the **Kone Academy Ecosystem**.\n\nI have complete knowledge across our academy subdomains:\n- **Kone Kids (kids.codkon.com):** STEM, robotics, and creative coding for ages 6–16\n- **Kone Code (code.codkon.com):** Professional software engineering, React, TypeScript, and full-stack tracks\n- **Kone Consult (consult.codkon.com):** Enterprise AI deployment, architecture audits, and digital transformation\n- **Kone Digital (digital.codkon.com):** UI/UX product design, branding, and creative interactive web\n- **Kone Lab (lab.codkon.com):** Hardware R&D, embedded firmware, IoT sensor telemetry, and PID control\n- **Kone Shop (shop.codkon.com):** Educational robotics kits, microcontroller boards, and electronics\n- **Kone Farms & Kone Warp:** Smart agriculture and instant browser sandboxes\n\nSelect any subdomain above to focus your inquiries, or ask me anything directly!`,
   timestamp: Date.now(),
   provider: 'Gemini 3.8 Flash'
 };

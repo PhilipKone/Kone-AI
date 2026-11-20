@@ -24,13 +24,13 @@ const Sitemap: React.FC<SitemapProps> = ({ onBack, onNavigate }) => {
           "@type": "ListItem",
           "position": 1,
           "name": "Kone AI",
-          "item": "https://ai.koneacademy.io/"
+          "item": "https://ai.codkon.com/"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Sitemap",
-          "item": "https://ai.koneacademy.io/"
+          "item": "https://ai.codkon.com/"
         }
       ]
     });
@@ -96,13 +96,13 @@ const Sitemap: React.FC<SitemapProps> = ({ onBack, onNavigate }) => {
               </div>
               <div className="ai-sitemap-list">
                 <div className="ai-sitemap-item">
-                  <a href="https://www.koneacademy.io" className="ai-sitemap-link" target="_blank" rel="noopener noreferrer">
+                  <a href="https://academy.codkon.com" className="ai-sitemap-link" target="_blank" rel="noopener noreferrer">
                     Kone Academy Main Hub <ExternalLink size={12} className="ai-external-icon" />
                   </a>
                   <p className="ai-sitemap-desc">Parent company landing page containing central index protocols and specs.</p>
                 </div>
                 <div className="ai-sitemap-item">
-                  <a href="https://www.koneacademy.io/sitemap" className="ai-sitemap-link" target="_blank" rel="noopener noreferrer">
+                  <a href="https://academy.codkon.com/sitemap" className="ai-sitemap-link" target="_blank" rel="noopener noreferrer">
                     Central Sitemap Hub <ExternalLink size={12} className="ai-external-icon" />
                   </a>
                   <p className="ai-sitemap-desc">Central link directory connecting all 11 subdomains.</p>
